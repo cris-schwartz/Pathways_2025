@@ -5,3 +5,8 @@
 # CLEAN AND CLEAR THE ENVIRONMENT --------------------------
 rm(list = ls())             ## Clear environment
 # cat("\014")                 ## Clear console, ctrl+L
+
+# INSTALL AND LOAD PACKAGES --------------------------------
+pacman::p_load(magrittr, pacman, tidyverse,ggforce)
+library(readxl)
+if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # install sankey package
