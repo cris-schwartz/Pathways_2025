@@ -97,4 +97,11 @@ processed_data <-
     (degree_year == '2023' & degree_term == 'Fall') ~ 26,
     (degree_year == '2024' & degree_term == 'Spring') ~ 27,
     (degree_year == '2024' & degree_term == 'Summer') ~ 28,
-  ))
+  )) %>% 
+  group_by(study_id) %>% # group by student to continue coding
+  arrange(study_id, sem_sequence_id) %>%  # arrange in chronological order
+  mutate(first_college = first(college_prevsem)) %>%  # assign first college at ISU start
+  mutate(start_status_isu = if_else( # determine whether first ISU semester was in CoE
+   (first_college == 'New' | first_college == 'Not Enrolled'),'CoE', 'non-CoE')
+  ) %>% 
+  mutate(major_first = first(major_current), major_second = nth(major_current,2), major_third = nth(major_current,3))
