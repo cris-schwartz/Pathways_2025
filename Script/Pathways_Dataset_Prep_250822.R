@@ -13,7 +13,7 @@ library(readxl)
 
 # LOAD AND PREPARE DATA ------------------------------------
 raw_data <- # import the raw excel file
-  read_excel("./Data/CoE_curriculum_request_072825_edited.xlsx") %>% 
+  read_excel("./Data/CoE_curriculum_request_072825_edited.xlsx", guess_max = 1000) %>% # guess_max ensures empty rows not treated as logical values 
   as_tibble()
 
 # RECODING OF DATE AND SEMESTER DATA -----------------------
