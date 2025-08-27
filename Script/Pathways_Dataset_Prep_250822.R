@@ -13,7 +13,7 @@ library(readxl)
 
 # LOAD AND PREPARE DATA ------------------------------------
 raw_data <- # import the raw excel file
-  read_excel("./Data/CoE_curriculum_request_072825.xlsx") %>% 
+  read_excel("./Data/CoE_curriculum_request_072825_edited.xlsx") %>% 
   as_tibble()
 
 # RECODING OF DATE AND SEMESTER DATA -----------------------
@@ -104,4 +104,5 @@ processed_data <-
   mutate(start_status_isu = if_else( # determine whether first ISU semester was in CoE
    (first_college == 'New' | first_college == 'Not Enrolled'),'CoE', 'non-CoE')
   ) %>% 
-  mutate(major_first = first(major_current), major_second = nth(major_current,2), major_third = nth(major_current,3))
+  mutate(major_first = first(major_current), major_second = nth(major_current,2), major_third = nth(major_current,3))  # track major changes
+  # mutate(degree_program)
