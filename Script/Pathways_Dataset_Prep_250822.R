@@ -110,5 +110,10 @@ processed_data <-
   mutate(major_first = if_else( # relabel undeclared
     major_first == 'College of Engineering Undergraduate Undeclared Major','Undeclared Engineering',major_first
   )) %>% 
-  mutate(undeclared_start = ifelse(major_first == 'Undeclared Engineering',1,0)) # determine undeclared status
+  mutate(undeclared_start = ifelse(major_first == 'Undeclared Engineering',1,0)) %>%  # determine undeclared status
+  mutate(grad_status_dataset = case_when(
+    (graduated_college == 'Engineering') ~ 'Engineering Degree',
+    (graduated_college != 'Engineering' & !is.na(graduated_college)) ~ 'Non-Engineering Degree',
+    (is.na(graduated_college)) ~ 'No Degree'
+  ))
   # mutate(degree_program)
