@@ -97,6 +97,8 @@ processed_data <-
     (degree_year == '2023' & degree_term == 'Fall') ~ 26,
     (degree_year == '2024' & degree_term == 'Spring') ~ 27,
     (degree_year == '2024' & degree_term == 'Summer') ~ 28,
+    (degree_year == '2024' & degree_term == 'Fall') ~ 29,
+    (degree_year == '2025' & degree_term == 'Spring') ~ 30,
   )) %>% 
   group_by(study_id) %>% # group by student to continue coding
   arrange(study_id, sem_sequence_id) %>%  # arrange in chronological order
@@ -104,5 +106,9 @@ processed_data <-
   mutate(start_status_isu = if_else( # determine whether first ISU semester was in CoE
    (first_college == 'New' | first_college == 'Not Enrolled'),'CoE', 'non-CoE')
   ) %>% 
-  mutate(major_first = first(major_current), major_second = nth(major_current,2), major_third = nth(major_current,3))  # track major changes
+  mutate(major_first = first(major_current), major_second = nth(major_current,2), major_third = nth(major_current,3)) %>%   # track major changes
+  mutate(major_first = if_else( # relabel undeclared
+    major_first == 'College of Engineering Undergraduate Undeclared Major','Undeclared Engineering',major_first
+  )) %>% 
+  mutate(undeclared_start = ifelse(major_first == 'Undeclared Engineering',1,0)) # determine undeclared status
   # mutate(degree_program)
