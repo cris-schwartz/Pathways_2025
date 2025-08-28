@@ -127,9 +127,14 @@ pathway_summary <- # summarize records to single row per student
             coe_sem_final = last(sem_sequence_id), coe_duration = n(),
             major_first = first(major_first), major_second = first(major_second),
             major_changes = n_distinct(major_current) - 1,
+            graduated_program = first(graduated_program),
             grad_sem_id = first(grad_sem_id), first_college = first(first_college),
             start_status_isu = first(start_status_isu), undeclared_start = first(undeclared_start),
-            grad_status_dataset = first(grad_status_dataset), 
-            first_sem_gpa = nth(sem_gpa_current,2),final_cmltv_gpa = last(cmltv_gpa_current) 
+            grad_status_dataset = first(grad_status_dataset), warning_instances = sum(academic_standing == 'Warning'), probation_instances = sum(academic_standing == 'Probation'),
+            dismissal_instances = sum(academic_standing == 'Dismissal'),
+            sex = first(sex), ethnicity = first(ethnicity), first_generation = first(first_generation),
+            veteran = first(veteran), residency = first(residency), admission_type = first(admission_type),
+            hs_code = first(hs_code),
+            first_sem_gpa = nth(sem_gpa_current,2),final_cmltv_gpa = last(cmltv_gpa_current)
             )
   
