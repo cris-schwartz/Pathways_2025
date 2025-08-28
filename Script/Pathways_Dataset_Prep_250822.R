@@ -115,8 +115,11 @@ processed_data <-
     (graduated_college == 'Engineering') ~ 'Engineering Degree',
     (graduated_college != 'Engineering' & !is.na(graduated_college)) ~ 'Non-Engineering Degree',
     (is.na(graduated_college)) ~ 'No Degree'
+    # (grad_sem_id < coe_sem_start) ~ 'No Degree' # this eliminates students who completed non-CoE degrees before starting in CoE
   )) %>% 
   ungroup
+
+
 
 # SUMMARY OF DATA BY STUDENT -----------------------
 pathway_summary <- # summarize records to single row per student
@@ -127,7 +130,7 @@ pathway_summary <- # summarize records to single row per student
             coe_sem_final = last(sem_sequence_id), coe_duration = n(),
             major_first = first(major_first), major_second = first(major_second),
             major_changes = n_distinct(major_current) - 1,
-            graduated_program = first(graduated_program),
+            graduated_program = first(graduated_program), graduated_college = first(graduated_college),
             grad_sem_id = first(grad_sem_id), first_college = first(first_college),
             start_status_isu = first(start_status_isu), undeclared_start = first(undeclared_start),
             grad_status_dataset = first(grad_status_dataset), warning_instances = sum(academic_standing == 'Warning'), probation_instances = sum(academic_standing == 'Probation'),
@@ -135,6 +138,15 @@ pathway_summary <- # summarize records to single row per student
             sex = first(sex), ethnicity = first(ethnicity), first_generation = first(first_generation),
             veteran = first(veteran), residency = first(residency), admission_type = first(admission_type),
             hs_code = first(hs_code),
-            first_sem_gpa = nth(sem_gpa_current,2),final_cmltv_gpa = last(cmltv_gpa_current)
+            first_sem_gpa = nth(sem_gpa_current,2),final_coe_gpa = last(cmltv_gpa_current)
             )
   
+# CALCULATE DISTRIBUTION OF SEMESTERS TO COMPLETE DEGREE ------
+graduates_HSdirect_coe_degree <- 
+  pathway_summary %>% 
+  filter(admission_type == 'Direct from HS' & graduated_college == 'Engineering')
+
+graduates_HSdirect_noncoe_degree <- 
+  pathway_summary %>% 
+  filter(admission_type == 'Direct from HS' & graduated_college != 'Engineering') %>% 
+  mutate(degree_duration = grad_sem_id - coe_sem_start + 1)
