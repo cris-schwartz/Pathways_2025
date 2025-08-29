@@ -163,4 +163,14 @@ graduates_HSdirect_noncoe_degree <-
   filter(admission_type == 'Direct from HS' & graduated_college != 'Engineering') %>% 
   mutate(degree_duration = grad_sem_id - admsn_sem_id + 1)
 
+graduates_transfer_coe_degree <- 
+  pathway_summary %>% 
+  filter(grad_status_dataset != 'No Degree') %>% 
+  filter(admission_type == 'Transfer' & graduated_college == 'Engineering') %>% 
+  mutate(degree_duration = grad_sem_id - admsn_sem_id + 1)
 
+graduates_transfer_noncoe_degree <- 
+  pathway_summary %>% 
+  filter(grad_status_dataset != 'No Degree') %>% 
+  filter(admission_type == 'Transfer' & graduated_college != 'Engineering') %>% 
+  mutate(degree_duration = grad_sem_id - admsn_sem_id + 1)
