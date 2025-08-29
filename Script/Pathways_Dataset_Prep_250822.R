@@ -102,6 +102,7 @@ processed_data <-
   )) %>% 
   group_by(study_id) %>% # group by student to continue coding
   arrange(study_id, sem_sequence_id) %>%  # arrange in chronological order
+  mutate(coe_sem_start = first(sem_sequence_id)) %>% # get first semester in CoE program
   mutate(first_college = first(college_prevsem)) %>%  # assign first college at ISU start
   mutate(start_status_isu = if_else( # determine whether first ISU semester was in CoE
    (first_college == 'New' | first_college == 'Not Enrolled'),'CoE', 'non-CoE')
@@ -112,21 +113,22 @@ processed_data <-
   )) %>% 
   mutate(undeclared_start = ifelse(major_first == 'Undeclared Engineering',1,0)) %>%  # determine undeclared status
   mutate(grad_status_dataset = case_when(
+    (grad_sem_id < coe_sem_start) ~ 'No Degree', # this eliminates students who completed non-CoE degrees before starting in CoE
     (graduated_college == 'Engineering') ~ 'Engineering Degree',
     (graduated_college != 'Engineering' & !is.na(graduated_college)) ~ 'Non-Engineering Degree',
     (is.na(graduated_college)) ~ 'No Degree'
-    # (grad_sem_id < coe_sem_start) ~ 'No Degree' # this eliminates students who completed non-CoE degrees before starting in CoE
+    
   )) %>% 
   ungroup
 
-
+student_1825 <- filter(processed_data,study_id == 1825)
 
 # SUMMARY OF DATA BY STUDENT -----------------------
 pathway_summary <- # summarize records to single row per student
   processed_data %>% 
   group_by(study_id) %>% 
   arrange(study_id, sem_sequence_id) %>% # arrange the data chronologically
-  summarize(admsn_sem_id = first(admsn_sem_id), coe_sem_start = first(sem_sequence_id),
+  summarize(admsn_sem_id = first(admsn_sem_id), coe_sem_start = first(coe_sem_start),
             coe_sem_final = last(sem_sequence_id), coe_duration = n(),
             major_first = first(major_first), major_second = first(major_second),
             major_changes = n_distinct(major_current) - 1,
@@ -143,10 +145,12 @@ pathway_summary <- # summarize records to single row per student
   
 # CALCULATE DISTRIBUTION OF SEMESTERS TO COMPLETE DEGREE ------
 graduates_HSdirect_coe_degree <- 
-  pathway_summary %>% 
+  pathway_summary %>%
+  filter(grad_status_dataset != 'No Degree') %>% 
   filter(admission_type == 'Direct from HS' & graduated_college == 'Engineering')
 
 graduates_HSdirect_noncoe_degree <- 
   pathway_summary %>% 
+  filter(grad_status_dataset != 'No Degree') %>% 
   filter(admission_type == 'Direct from HS' & graduated_college != 'Engineering') %>% 
   mutate(degree_duration = grad_sem_id - coe_sem_start + 1)
