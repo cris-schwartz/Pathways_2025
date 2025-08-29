@@ -37,7 +37,11 @@ processed_data <-
     (year_current == '2022' & semester_current == 'Fall') ~ 23,
     (year_current == '2023' & semester_current == 'Spring') ~ 24,
     (year_current == '2023' & semester_current == 'Fall') ~ 26,
-    (year_current == '2024' & semester_current == 'Spring') ~ 27
+    (year_current == '2024' & semester_current == 'Spring') ~ 27,
+    (year_current == '2024' & semester_current == 'Fall') ~ 29,
+    (year_current == '2025' & semester_current == 'Spring') ~ 30,
+    (year_current == '2025' & semester_current == 'Summer') ~ 31
+    
   )) %>%  # assign ordinal integer code to semester with Summer 2015 as start
   mutate(admsn_sem_id = case_when( # assign integer code to admission semester
     (admsn_term == '115') ~ 1,
@@ -66,7 +70,11 @@ processed_data <-
     (admsn_term == 'S23') ~ 24,
     (admsn_term == '123') ~ 25,
     (admsn_term == 'F23') ~ 26,
-    (admsn_term == 'S24') ~ 27
+    (admsn_term == 'S24') ~ 27,
+    (admsn_term == '124') ~ 28,
+    (admsn_term == 'F24') ~ 29,
+    (admsn_term == 'S25') ~ 30,
+    (admsn_term == '125') ~ 31
   )) %>% 
   mutate(grad_sem_id = case_when( # code the graduation semester
     (degree_year == '2015' & degree_term == 'Summer') ~ 1,
@@ -90,15 +98,17 @@ processed_data <-
     (degree_year == '2021' & degree_term == 'Summer') ~ 19,
     (degree_year == '2021' & degree_term == 'Fall') ~ 20,
     (degree_year == '2022' & degree_term == 'Spring') ~ 21,
-    (degree_year == '2012' & degree_term == 'Summer') ~ 22,
+    (degree_year == '2022' & degree_term == 'Summer') ~ 22,
     (degree_year == '2022' & degree_term == 'Fall') ~ 23,
     (degree_year == '2023' & degree_term == 'Spring') ~ 24,
     (degree_year == '2023' & degree_term == 'Summer') ~ 25,
     (degree_year == '2023' & degree_term == 'Fall') ~ 26,
+    (degree_year == '2024' & degree_term == 'Winter') ~26, # group winter with previous fall
     (degree_year == '2024' & degree_term == 'Spring') ~ 27,
     (degree_year == '2024' & degree_term == 'Summer') ~ 28,
     (degree_year == '2024' & degree_term == 'Fall') ~ 29,
     (degree_year == '2025' & degree_term == 'Spring') ~ 30,
+    (degree_year == '2025' & degree_term == 'Summer') ~ 31
   )) %>% 
   group_by(study_id) %>% # group by student to continue coding
   arrange(study_id, sem_sequence_id) %>%  # arrange in chronological order
