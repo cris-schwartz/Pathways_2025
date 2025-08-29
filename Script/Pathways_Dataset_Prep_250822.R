@@ -117,11 +117,8 @@ processed_data <-
     (graduated_college == 'Engineering') ~ 'Engineering Degree',
     (graduated_college != 'Engineering' & !is.na(graduated_college)) ~ 'Non-Engineering Degree',
     (is.na(graduated_college)) ~ 'No Degree'
-    
   )) %>% 
   ungroup
-
-student_1825 <- filter(processed_data,study_id == 1825)
 
 # SUMMARY OF DATA BY STUDENT -----------------------
 pathway_summary <- # summarize records to single row per student
@@ -147,10 +144,13 @@ pathway_summary <- # summarize records to single row per student
 graduates_HSdirect_coe_degree <- 
   pathway_summary %>%
   filter(grad_status_dataset != 'No Degree') %>% 
-  filter(admission_type == 'Direct from HS' & graduated_college == 'Engineering')
+  filter(admission_type == 'Direct from HS' & graduated_college == 'Engineering') %>% 
+  mutate(degree_duration = grad_sem_id - admsn_sem_id + 1)
 
 graduates_HSdirect_noncoe_degree <- 
   pathway_summary %>% 
   filter(grad_status_dataset != 'No Degree') %>% 
   filter(admission_type == 'Direct from HS' & graduated_college != 'Engineering') %>% 
-  mutate(degree_duration = grad_sem_id - coe_sem_start + 1)
+  mutate(degree_duration = grad_sem_id - admsn_sem_id + 1)
+
+
