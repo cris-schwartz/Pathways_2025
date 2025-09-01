@@ -157,6 +157,11 @@ pathway_summary <- # summarize records to single row per student
               (!is.na(graduated_program)) ~ 'Degree',
               (is.na(graduated_program) ~ (if_else(degree_duration <= 14, 'Undetermined','No Degree')))
             ))
+
+# OUTPUT OF DATASET WITH ONLY DEGREE OUTCOME DETERMINED STUDENTS -------
+resolved_students <- 
+  pathway_summary %>% 
+  filter(degree_outcome != 'Undetermined') # filter out undetermined degree status students
   
 # CALCULATE DISTRIBUTION OF SEMESTERS TO COMPLETE DEGREE ------
 # variables below have already been calculated and results used to determine degree_outcome status of students/
