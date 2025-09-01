@@ -162,6 +162,9 @@ pathway_summary <- # summarize records to single row per student
 resolved_students <- 
   pathway_summary %>% 
   filter(degree_outcome != 'Undetermined') # filter out undetermined degree status students
+
+# GENERATE CSV OUTPUT TO EXPLORE DATASET
+# write_csv(resolved_students,'./Data/Degree_Outcome_Resolved_Students_250901.csv')
   
 # CALCULATE DISTRIBUTION OF SEMESTERS TO COMPLETE DEGREE ------
 # variables below have already been calculated and results used to determine degree_outcome status of students/
