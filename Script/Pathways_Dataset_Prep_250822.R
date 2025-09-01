@@ -148,29 +148,40 @@ pathway_summary <- # summarize records to single row per student
             veteran = first(veteran), residency = first(residency), admission_type = first(admission_type),
             hs_code = first(hs_code),
             first_sem_gpa = nth(sem_gpa_current,2),final_coe_gpa = last(cmltv_gpa_current)
-            )
+            ) %>%
+            mutate(degree_duration = case_when( # determine the number of semesters either to degree or since ISU start
+              (grad_status_dataset != 'No Degree') ~ grad_sem_id - admsn_sem_id + 1,
+              (grad_status_dataset == 'No Degree') ~ 31 - admsn_sem_id + 1 # 31 is the semester ID of Summer 2025
+            )) %>% 
+            mutate(degree_outcome = case_when( # determine the ultimate outcome for students with no degree listed
+              (!is.na(graduated_program)) ~ 'Degree',
+              (is.na(graduated_program) ~ (if_else(degree_duration <= 14, 'Undetermined','No Degree')))
+            ))
   
 # CALCULATE DISTRIBUTION OF SEMESTERS TO COMPLETE DEGREE ------
-graduates_HSdirect_coe_degree <- 
-  pathway_summary %>%
-  filter(grad_status_dataset != 'No Degree') %>% 
-  filter(admission_type == 'Direct from HS' & graduated_college == 'Engineering') %>% 
-  mutate(degree_duration = grad_sem_id - admsn_sem_id + 1)
+# variables below have already been calculated and results used to determine degree_outcome status of students/
+# in the dataset with no degree listed
 
-graduates_HSdirect_noncoe_degree <- 
-  pathway_summary %>% 
-  filter(grad_status_dataset != 'No Degree') %>% 
-  filter(admission_type == 'Direct from HS' & graduated_college != 'Engineering') %>% 
-  mutate(degree_duration = grad_sem_id - admsn_sem_id + 1)
-
-graduates_transfer_coe_degree <- 
-  pathway_summary %>% 
-  filter(grad_status_dataset != 'No Degree') %>% 
-  filter(admission_type == 'Transfer' & graduated_college == 'Engineering') %>% 
-  mutate(degree_duration = grad_sem_id - admsn_sem_id + 1)
-
-graduates_transfer_noncoe_degree <- 
-  pathway_summary %>% 
-  filter(grad_status_dataset != 'No Degree') %>% 
-  filter(admission_type == 'Transfer' & graduated_college != 'Engineering') %>% 
-  mutate(degree_duration = grad_sem_id - admsn_sem_id + 1)
+# graduates_HSdirect_coe_degree <- 
+#   pathway_summary %>%
+#   filter(grad_status_dataset != 'No Degree') %>% 
+#   filter(admission_type == 'Direct from HS' & graduated_college == 'Engineering') %>% 
+#   mutate(degree_duration = grad_sem_id - admsn_sem_id + 1)
+# 
+# graduates_HSdirect_noncoe_degree <- 
+#   pathway_summary %>% 
+#   filter(grad_status_dataset != 'No Degree') %>% 
+#   filter(admission_type == 'Direct from HS' & graduated_college != 'Engineering') %>% 
+#   mutate(degree_duration = grad_sem_id - admsn_sem_id + 1)
+# 
+# graduates_transfer_coe_degree <- 
+#   pathway_summary %>% 
+#   filter(grad_status_dataset != 'No Degree') %>% 
+#   filter(admission_type == 'Transfer' & graduated_college == 'Engineering') %>% 
+#   mutate(degree_duration = grad_sem_id - admsn_sem_id + 1)
+# 
+# graduates_transfer_noncoe_degree <- 
+#   pathway_summary %>% 
+#   filter(grad_status_dataset != 'No Degree') %>% 
+#   filter(admission_type == 'Transfer' & graduated_college != 'Engineering') %>% 
+#   mutate(degree_duration = grad_sem_id - admsn_sem_id + 1)
