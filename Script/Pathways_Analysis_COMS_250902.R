@@ -22,4 +22,7 @@ semester_based_data <- # load the semester-by-semester data
 
 coms_transfer_students <- 
   semester_based_data %>% 
-  filter(major_nextsem == 'Computer Science')
+  filter(major_nextsem == 'Computer Science') %>% 
+  select(study_id,sem_sequence_id, academic_standing) %>%  # select fields 
+  rename(transfer_sem_id = sem_sequence_id, academic_standing_at_transfer = academic_standing) %>% 
+  left_join(.,resolved_students,by = "study_id") # match up summaries for each student
