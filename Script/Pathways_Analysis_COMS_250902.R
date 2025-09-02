@@ -10,3 +10,16 @@ rm(list = ls())             ## Clear environment
 pacman::p_load(magrittr, pacman, tidyverse,ggforce)
 library(readxl)
 # if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # install sankey package
+
+# LOAD AND PREPARE DATA ------------------------------------
+resolved_students <- # import the raw csv file of the student summary data
+  read_csv("./Data/Degree_Outcome_Resolved_Students_250901.csv", guess_max = 1000) %>% # guess_max ensures empty rows not treated as logical values 
+  as_tibble()
+
+semester_based_data <- # load the semester-by-semester data
+  read_csv("./Data/Processed_Student_Dataset_250902.csv", guess_max = 1000) %>% 
+  as_tibble()
+
+coms_transfer_students <- 
+  semester_based_data %>% 
+  filter(major_nextsem == 'Computer Science')
