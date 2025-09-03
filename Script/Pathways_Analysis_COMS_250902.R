@@ -43,3 +43,7 @@ node_fields <- # structure the data for a Sankey plot
       (graduated_college == "Engineering") ~ "Engineering Degree"
     )
   ))
+
+coms_pathways_sankey_format <- 
+  node_fields %>% 
+  make_long(major_first, degree_field)
