@@ -26,3 +26,13 @@ coms_transfer_students <-
   select(study_id,sem_sequence_id, academic_standing) %>%  # select fields 
   rename(transfer_sem_id = sem_sequence_id, academic_standing_at_transfer = academic_standing) %>% 
   left_join(.,pathway_summary,by = "study_id") # match up summaries for each student
+
+node_fields <- # structure the data for a Sankey plot
+  coms_transfer_students %>% 
+  select(study_id, major_first, graduated_program, graduated_college) %>% 
+  mutate(degree_field = case_when(
+    (graduated_program == 'Computer Science') ~ "COMS Degree",
+    (graduated_program != 'Computer Science' & !is.na(graduated_program)) ~ "other",
+    (is.na(graduated_program)) ~ "No Degree"
+    
+  ))
