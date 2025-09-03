@@ -34,5 +34,5 @@ node_fields <- # structure the data for a Sankey plot
     (graduated_program == 'Computer Science') ~ "COMS Degree",
     (graduated_program != 'Computer Science' & !is.na(graduated_program)) ~ "other",
     (is.na(graduated_program)) ~ "No Degree"
-    
-  ))
+  )) %>% 
+  mutate(d)
