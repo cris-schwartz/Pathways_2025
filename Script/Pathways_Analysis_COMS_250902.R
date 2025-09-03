@@ -35,4 +35,11 @@ node_fields <- # structure the data for a Sankey plot
     (graduated_program != 'Computer Science' & !is.na(graduated_program)) ~ "other",
     (is.na(graduated_program)) ~ "No Degree"
   )) %>% 
-  mutate(d)
+  mutate(degree_field = if_else(
+    degree_field != "other",degree_field, case_when(
+      (graduated_college == "LAS") ~ "LAS Degree (other than COMS)",
+      (graduated_college == "Business") ~ "BUS Degree",
+      (graduated_college == "HHS") ~ "HHS Degree",
+      (graduated_college == "Engineering") ~ "Engineering Degree"
+    )
+  ))
