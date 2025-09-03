@@ -9,6 +9,7 @@ rm(list = ls())             ## Clear environment
 # INSTALL AND LOAD PACKAGES --------------------------------
 pacman::p_load(magrittr, pacman, tidyverse,ggforce)
 library(readxl)
+library(ggsankey)
 # if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # install sankey package
 
 # LOAD AND PREPARE DATA ------------------------------------
@@ -44,6 +45,25 @@ node_fields <- # structure the data for a Sankey plot
     )
   ))
 
+# VISUALIZE THE DATA ------------------------------------
+
 coms_pathways_sankey_format <- 
   node_fields %>% 
   make_long(major_first, degree_field)
+
+print(
+  ggplot(coms_pathways_sankey_format, aes(x = x,
+                                          next_x = next_x,
+                                          node = node,
+                                          next_node = next_node,
+                                          fill = factor(node))) +
+    geom_sankey(flow.alpha = 0.8, node.color = 'gray90', show.legend = FALSE) +
+    geom_sankey_label(aes(label = node), size = 3, color = 'black', fill = 'gray90') +
+    theme_bw() +
+    theme(legend.position = 'none') +
+    theme(axis.title = element_blank()
+          , axis.text.y = element_blank()
+          , axis.ticks = element_blank()  
+          , panel.grid = element_blank()) 
+  
+)
