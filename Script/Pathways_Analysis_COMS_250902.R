@@ -10,7 +10,7 @@ rm(list = ls())             ## Clear environment
 pacman::p_load(magrittr, pacman, tidyverse,ggforce)
 library(readxl)
 library(ggsankey)
-# if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # install sankey package
+if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # install sankey package
 
 # LOAD AND PREPARE DATA ------------------------------------
 pathway_summary <- # import the raw csv file of the student summary data
