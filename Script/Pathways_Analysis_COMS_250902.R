@@ -32,16 +32,16 @@ node_fields <- # structure the data for a Sankey plot
   coms_transfer_students %>% 
   select(study_id, major_first, graduated_program, graduated_college) %>% 
   mutate(degree_field = case_when(
-    (graduated_program == 'Computer Science') ~ "COMS Degree",
+    (graduated_program == 'Computer Science') ~ "2. COMS Degree",
     (graduated_program != 'Computer Science' & !is.na(graduated_program)) ~ "other",
-    (is.na(graduated_program)) ~ "No Degree"
+    (is.na(graduated_program)) ~ "1. No Degree"
   )) %>% 
   mutate(degree_field = if_else(
     degree_field != "other",degree_field, case_when(
-      (graduated_college == "LAS") ~ "LAS Degree (other than COMS)",
-      (graduated_college == "Business") ~ "BUS Degree",
-      (graduated_college == "HHS") ~ "HHS Degree",
-      (graduated_college == "Engineering") ~ "Engineering Degree"
+      (graduated_college == "LAS") ~ "4. LAS Degree (other than COMS)",
+      (graduated_college == "Business") ~ "3. BUS Degree",
+      (graduated_college == "HHS") ~ "6. HHS Degree",
+      (graduated_college == "Engineering") ~ "5. Engineering Degree"
     )
   ))
 
@@ -52,7 +52,11 @@ coms_pathways_sankey_format <-
   make_long(major_first, degree_field)
 
 print(
-  ggplot(coms_pathways_sankey_format, aes(x = x,
+  ggplot(coms_pathways_sankey_format %>% 
+           mutate(node = fct_rev(as.factor(node)),
+                  next_node = fct_rev(as.factor(next_node))
+                  ),
+         aes(x = x,
                                           next_x = next_x,
                                           node = node,
                                           next_node = next_node,
