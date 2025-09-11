@@ -26,7 +26,20 @@ coms_transfer_students <-
   filter(major_nextsem == 'Computer Science') %>% 
   select(study_id,sem_sequence_id, academic_standing) %>%  # select fields 
   rename(transfer_sem_id = sem_sequence_id, academic_standing_at_transfer = academic_standing) %>% 
-  left_join(.,pathway_summary,by = "study_id") # match up summaries for each student
+  left_join(.,pathway_summary,by = "study_id") %>%  # match up summaries for each student
+  filter(degree_outcome != 'Undetermined')
+  
+detail_SE <- 
+  coms_transfer_students %>% 
+  filter(major_first == 'Software Engineering')
+
+detail_ME <- 
+  coms_transfer_students %>% 
+  filter(major_first == 'Mechanical Engineering')
+
+detail_COMS_degree <- 
+  coms_transfer_students %>% 
+  filter(graduated_program =='Computer Science')
 
 node_fields <- # structure the data for a Sankey plot
   coms_transfer_students %>% 
@@ -44,6 +57,7 @@ node_fields <- # structure the data for a Sankey plot
       (graduated_college == "Engineering") ~ "5. Engineering Degree"
     )
   ))
+
 
 # VISUALIZE THE DATA ------------------------------------
 
