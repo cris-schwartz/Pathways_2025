@@ -117,9 +117,9 @@ processed_data <-
   mutate(start_status_isu = if_else( # determine whether first ISU semester was in CoE
    (first_college == 'New' | first_college == 'Not Enrolled'),'CoE', 'non-CoE')
   ) %>% 
-  mutate(major_first = first(major_current), major_second = nth(major_current,2), major_third = nth(major_current,3)) %>%   # track major changes
+  mutate(major_first = first(major_current)) %>% 
   mutate(major_first = if_else( # relabel undeclared
-    major_first == 'College of Engineering Undergraduate Undeclared Major','Undeclared Engineering',major_first
+  major_first == 'College of Engineering Undergraduate Undeclared Major','Undeclared Engineering',major_first
   )) %>% 
   mutate(undeclared_start = ifelse(major_first == 'Undeclared Engineering',1,0)) %>%  # determine undeclared status
   mutate(grad_status_dataset = case_when(
@@ -129,6 +129,15 @@ processed_data <-
     (is.na(graduated_college)) ~ 'No Degree'
   )) %>% 
   ungroup
+  
+  # ungroup() %>% 
+  # group_by(study_id, major_current) %>% # redo the grouping to get major transfer info
+  # distinct(study_id, major_current, .keep_all = TRUE) # get unique major_current rows
+  
+  
+# DO THE MAJOR TRANSFER CALCS HERE AND REJOIN TO PROCESSED_DATA  
+  mutate(major_first = first(major_current), major_second = nth(major_current,2), major_third = nth(major_current,3)) %>%   # track major changes
+
 
 # SUMMARY OF DATA BY STUDENT -----------------------
 pathway_summary <- # summarize records to single row per student
