@@ -151,7 +151,8 @@ pathway_summary <- # summarize records to single row per student
   arrange(study_id, sem_sequence_id) %>% # arrange the data chronologically
   summarize(admsn_sem_id = first(admsn_sem_id), coe_sem_start = first(coe_sem_start),
             coe_sem_final = last(sem_sequence_id), coe_duration = n(),
-            major_first = first(major_first), major_second = first(major_second),
+            # major_first = first(major_first), major_second = first(major_second),
+            major_first = first(major_first),
             major_changes = n_distinct(major_current) - 1,
             graduated_program = first(graduated_program), graduated_college = first(graduated_college),
             grad_sem_id = first(grad_sem_id), first_college = first(first_college),
@@ -170,7 +171,13 @@ pathway_summary <- # summarize records to single row per student
             mutate(degree_outcome = case_when( # determine the ultimate outcome for students with no degree listed
               (!is.na(graduated_program)) ~ 'Degree',
               (is.na(graduated_program) ~ (if_else(degree_duration <= 14, 'Undetermined','No Degree')))
-            ))
+            )) %>% 
+  left_join(.,transfer_details) %>% # insert the transfer history info
+  relocate(c(major_second, major_third), .after = major_first) %>% # move columns to better location
+  mutate(major_changes = if_else( # do not count declaring major as a major change
+    (undeclared_start == 1 & !is.na(major_second)), major_changes - 1, major_changes
+  ))
+  
 
 # OUTPUT OF DATASET WITH ONLY DEGREE OUTCOME DETERMINED STUDENTS -------
 resolved_students <- 
