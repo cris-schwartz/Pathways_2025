@@ -64,11 +64,18 @@ outcome_resolved_never_declared_grouping <-
   ))
 
 print(
-plot_gpa_comparison <-
-  outcome_resolved_never_declared_grouping %>%
-  filter(!is.na(never_declared_outcome)) %>%
-  ggplot(aes(x= first_sem_gpa, fill = never_declared_outcome)) +
-    geom_density(alpha = 0.5) +
-    labs (x = "First Semester GPA", y = "Density", fill = "CoE Start") +
+  plot_gpa_comparison <-
+    outcome_resolved_never_declared_grouping %>%
+    filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
+    mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
+    ggplot(aes(x= first_sem_gpa, y = ..density.., fill = never_declared_outcome)) +
+    geom_histogram(position = "identity", alpha = 0.5) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "First Semester GPA", y = "Proportion of Total", fill = "CoE Start") +
     theme_minimal()
 )
