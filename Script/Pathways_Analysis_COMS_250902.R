@@ -14,11 +14,11 @@ if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # in
 
 # LOAD AND PREPARE DATA ------------------------------------
 pathway_summary <- # import the raw csv file of the student summary data
-  read_csv("./Data/Student_Pathway_Summary_250902.csv", guess_max = 1000) %>% # guess_max ensures empty rows not treated as logical values 
+  read_csv("./Data/Student_Pathway_Summary_251106.csv", guess_max = 1000) %>% # guess_max ensures empty rows not treated as logical values 
   as_tibble()
 
 semester_based_data <- # load the semester-by-semester data
-  read_csv("./Data/Processed_Student_Dataset_250902.csv", guess_max = 1000) %>% 
+  read_csv("./Data/Processed_Student_Dataset_251106.csv", guess_max = 1000) %>% 
   as_tibble()
 
 coms_transfer_students <- 

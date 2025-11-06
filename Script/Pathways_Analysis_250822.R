@@ -13,7 +13,7 @@ library(readxl)
 
 # LOAD AND PREPARE DATA ------------------------------------
 pathway_summary <- # import the previously prepared pathway_summary csv file
-  read_csv("./Data/Student_Pathway_Summary_250902.csv", guess_max = 1000) %>% # guess_max ensures empty rows not treated as logical values 
+  read_csv("./Data/Student_Pathway_Summary_251106.csv", guess_max = 1000) %>% # guess_max ensures empty rows not treated as logical values 
   as_tibble()
 
 pathway_summary <- 
