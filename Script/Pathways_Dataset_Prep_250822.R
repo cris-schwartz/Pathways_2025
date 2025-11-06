@@ -117,10 +117,10 @@ processed_data <-
   mutate(start_status_isu = if_else( # determine whether first ISU semester was in CoE
    (first_college == 'New' | first_college == 'Not Enrolled'),'CoE', 'non-CoE')
   ) %>% 
-  mutate(major_first = first(major_current)) %>% 
-  mutate(major_first = if_else( # relabel undeclared
-  major_first == 'College of Engineering Undergraduate Undeclared Major','Undeclared Engineering',major_first
+  mutate(major_current = if_else( # relabel undeclared
+    major_current == 'College of Engineering Undergraduate Undeclared Major','Undeclared Engineering',major_current
   )) %>% 
+  mutate(major_first = first(major_current)) %>%
   mutate(undeclared_start = ifelse(major_first == 'Undeclared Engineering',1,0)) %>%  # determine undeclared status
   mutate(grad_status_dataset = case_when(
     (grad_sem_id < coe_sem_start) ~ 'No Degree', # this eliminates students who completed non-CoE degrees before starting in CoE
@@ -130,14 +130,19 @@ processed_data <-
   )) %>% 
   ungroup
   
-  # ungroup() %>% 
-  # group_by(study_id, major_current) %>% # redo the grouping to get major transfer info
-  # distinct(study_id, major_current, .keep_all = TRUE) # get unique major_current rows
-  
-  
-# DO THE MAJOR TRANSFER CALCS HERE AND REJOIN TO PROCESSED_DATA  
-  mutate(major_first = first(major_current), major_second = nth(major_current,2), major_third = nth(major_current,3)) %>%   # track major changes
 
+transfer_details <- # pull out transfer history data
+  processed_data %>% 
+  group_by(study_id, major_current) %>%
+  distinct(study_id, major_current) %>% # delete rows where these two fields are the same
+  ungroup %>% 
+  group_by(study_id) %>% # regroup to build vectors of major_current by student
+  mutate(major_second = nth(major_current,2), major_third = nth(major_current,3)) %>% # select appropriate vector location
+  ungroup %>% 
+  select(study_id, major_second, major_third) %>% # remove unwanted columns
+  group_by(study_id) %>% 
+  distinct(study_id, .keep_all = TRUE) %>% # remove all but first row for each study_id
+  ungroup
 
 # SUMMARY OF DATA BY STUDENT -----------------------
 pathway_summary <- # summarize records to single row per student
