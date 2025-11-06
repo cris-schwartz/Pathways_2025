@@ -28,22 +28,22 @@ outcome_resolved <- # identify students who have a resolved degree status
   filter(degree_outcome != 'Undetermined') 
   
 # ANALYSIS OF UNDECLARED STUDENTS ####
-undeclared_starts <- 
+started_undeclared <- 
   outcome_resolved %>% 
   filter(undeclared_start == 1)
 
 outcome_by_transfer_history <- # determine how many times student changed majors
-  undeclared_starts %>% 
+  started_undeclared %>% 
   group_by(major_changes, degree_outcome) %>% 
   summarise(n = n())
 
 outcome_by_retention <- # determine how many graduated and in what college
-  undeclared_starts %>% 
+  started_undeclared %>% 
   group_by(degree_outcome, graduated_college) %>% 
   summarise(n = n())
   
 never_declared <- # identify those who never declare
-  undeclared_starts %>% 
+  started_undeclared %>% 
   filter(is.na(major_second))
 
 outcome_never_declared <- # determine where never declared students go
@@ -56,3 +56,19 @@ declared_starts <- # identify those who started with a declared CoE major
   filter(undeclared_start == 0)
 
 # Comparison of never declared to started declared cohorts and outcomes
+outcome_resolved_never_declared_grouping <- 
+  outcome_resolved %>% 
+  mutate(never_declared_outcome = case_when(
+    (undeclared_start == 1 & is.na(major_second)) ~ 'Never Declared',
+    (undeclared_start == 0) ~ 'Started in CoE Major'
+  ))
+
+print(
+plot_gpa_comparison <-
+  outcome_resolved_never_declared_grouping %>%
+  filter(!is.na(never_declared_outcome)) %>%
+  ggplot(aes(x= first_sem_gpa, fill = never_declared_outcome)) +
+    geom_density(alpha = 0.5) +
+    labs (x = "First Semester GPA", y = "Density", fill = "CoE Start") +
+    theme_minimal()
+)
