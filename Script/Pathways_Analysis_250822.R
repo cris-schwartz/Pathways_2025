@@ -42,9 +42,17 @@ outcome_by_retention <- # determine how many graduated and in what college
   group_by(degree_outcome, graduated_college) %>% 
   summarise(n = n())
   
-never_declared <- 
+never_declared <- # identify those who never declare
   undeclared_starts %>% 
-  filter(is.na(major_second)) %>% 
+  filter(is.na(major_second))
+
+outcome_never_declared <- # determine where never declared students go
+  never_declared %>% 
   group_by(degree_outcome, graduated_college) %>% 
   summarise(n = n())
   
+declared_starts <- # identify those who started with a declared CoE major
+  outcome_resolved %>% 
+  filter(undeclared_start == 0)
+
+# Comparison of never declared to started declared cohorts and outcomes
