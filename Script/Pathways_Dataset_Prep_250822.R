@@ -151,7 +151,6 @@ pathway_summary <- # summarize records to single row per student
   arrange(study_id, sem_sequence_id) %>% # arrange the data chronologically
   summarize(admsn_sem_id = first(admsn_sem_id), coe_sem_start = first(coe_sem_start),
             coe_sem_final = last(sem_sequence_id), coe_duration = n(),
-            # major_first = first(major_first), major_second = first(major_second),
             major_first = first(major_first),
             major_changes = n_distinct(major_current) - 1,
             graduated_program = first(graduated_program), graduated_college = first(graduated_college),
