@@ -9,6 +9,7 @@ rm(list = ls())             ## Clear environment
 # INSTALL AND LOAD PACKAGES --------------------------------
 pacman::p_load(magrittr, pacman, tidyverse,ggforce)
 library(readxl)
+library(MatchIt) # load the library for the Propensity Score Matching
 # if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # install sankey package
 
 # LOAD AND PREPARE DATA ------------------------------------
@@ -27,7 +28,7 @@ outcome_resolved <- # identify students who have a resolved degree status
   pathway_summary %>% 
   filter(degree_outcome != 'Undetermined') 
   
-# ANALYSIS OF UNDECLARED STUDENTS ####
+# OVERVIEW ANALYSIS OF UNDECLARED STUDENTS ####
 started_undeclared <- 
   outcome_resolved %>% 
   filter(undeclared_start == 1)
@@ -199,25 +200,40 @@ outcome_resolved_never_declared_grouping <-
 #     theme_minimal()
 # )
 
-print(
-  plot_adm_type_comparison <- # comparison via direct from HS vs. transfer admission
-    outcome_resolved_never_declared_grouping %>%
-    filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
-    mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
-    mutate(admission_type = factor(admission_type)) %>% 
-    group_by(never_declared_outcome, admission_type) %>% 
-    summarize(count = n()) %>% 
-    ungroup() %>% 
-    group_by(never_declared_outcome) %>% 
-    mutate(proportion = count/sum(count)) %>% 
-    ggplot(aes(x = admission_type, y = proportion, fill = never_declared_outcome)) +
-    geom_col(position = "dodge", alpha = 0.5) +
-    scale_fill_discrete( # calculate sample size to add to legend
-      labels = function(x) { # creates a label entry based on calculation of sample size
-        n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
-        paste0(x, " (n = ", n_vals[x], ")")
-      }
-    ) +
-    labs (x = "Admission Type", y = "Proportion of Cohort", fill = "CoE Start") +
-    theme_minimal()
-)
+# print(
+#   plot_adm_type_comparison <- # comparison via direct from HS vs. transfer admission
+#     outcome_resolved_never_declared_grouping %>%
+#     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
+#     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
+#     mutate(admission_type = factor(admission_type)) %>% 
+#     group_by(never_declared_outcome, admission_type) %>% 
+#     summarize(count = n()) %>% 
+#     ungroup() %>% 
+#     group_by(never_declared_outcome) %>% 
+#     mutate(proportion = count/sum(count)) %>% 
+#     ggplot(aes(x = admission_type, y = proportion, fill = never_declared_outcome)) +
+#     geom_col(position = "dodge", alpha = 0.5) +
+#     scale_fill_discrete( # calculate sample size to add to legend
+#       labels = function(x) { # creates a label entry based on calculation of sample size
+#         n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
+#         paste0(x, " (n = ", n_vals[x], ")")
+#       }
+#     ) +
+#     labs (x = "Admission Type", y = "Proportion of Cohort", fill = "CoE Start") +
+#     theme_minimal()
+# )
+
+# 
+
+# PROPENSITY SCORE MATCHING ASSEMBLY OF NEVER DECLARED CONTROL COHORTS ####
+psm_coded_resolved <- # need to select and properly encode variables of interest
+  outcome_resolved_never_declared_grouping %>% 
+  filter(!is.na(never_declared_outcome)) %>% 
+  select(study_id, first_sem_gpa, start_status_isu, 
+         sex, ethnicity, first_generation, residency, admission_type,
+         never_declared_outcome, degree_duration, degree_outcome) %>% 
+  mutate(start_status_isu = factor(start_status_isu), sex = factor(sex),
+         ethnicity = factor(ethnicity), first_generation = factor (first_generation),
+         residency = factor(residency), admission_type = factor (admission_type),
+         never_declared_outcome = factor(never_declared_outcome),
+         degree_outcome = factor(degree_outcome))
