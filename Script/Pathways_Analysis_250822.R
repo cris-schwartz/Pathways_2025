@@ -10,6 +10,8 @@ rm(list = ls())             ## Clear environment
 pacman::p_load(magrittr, pacman, tidyverse,ggforce)
 library(readxl)
 library(MatchIt) # load the library for the Propensity Score Matching
+library(cobalt)
+library(broom)
 # if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # install sankey package
 
 # LOAD AND PREPARE DATA ------------------------------------
@@ -237,14 +239,68 @@ psm_coded_resolved <- # need to select and properly encode variables of interest
          ethnicity = factor(ethnicity), first_generation = factor (first_generation),
          residency = factor(residency), admission_type = factor (admission_type),
          never_declared_outcome = factor(never_declared_outcome),
-         degree_outcome = factor(degree_outcome))
+         degree_outcome = factor(degree_outcome)) %>% 
+  mutate(never_declared_flag = as.integer(never_declared_outcome == 'Never Declared'))
 
-m.out <- # get initial estimate of balance
-  matchit(never_declared_outcome ~ first_sem_gpa + start_status_isu + sex +
-            ethnicity + first_generation + residency + admission_type,
-          data = psm_coded_resolved, method = NULL, distance = "glm")
+covars <- c("first_sem_gpa", "start_status_isu", "sex", "ethnicity",
+            "first_generation", "residency", "admission_type")
 
-m.out1 <- 
-  matchit(never_declared_outcome ~ first_sem_gpa + start_status_isu + sex +
-            ethnicity + first_generation + residency + admission_type,
-          data = psm_coded_resolved, method = "nearest", ratio = 3, caliper = 0.05)
+psm_m <- 
+  psm_coded_resolved %>% 
+  select(study_id, never_declared_outcome, never_declared_flag, all_of(covars), degree_duration, degree_outcome) %>% 
+  drop_na(all_of(covars), never_declared_flag)
+
+form_ps <- as.formula(paste("never_declared_flag ~", paste (covars, collapse = " + ")))
+
+ps_mod <- glm(form_ps, data = psm_m, family = binomial())
+
+# psm_m <- 
+#   psm_m %>% 
+#   mutate(ps = predict(ps_mod, type = "response"), ps_logit = qlogis(ps))
+
+ps_vec <- predict(ps_mod, type = "response")
+ps_logit_vec <- qlogis(ps_vec)
+
+caliper_val <- 0.2 * sd(ps_logit_vec)
+
+psm_nops <- psm_m
+
+m_out <- matchit(
+  formula = form_ps,
+  data = psm_nops,
+  method = "nearest",
+  distance = ps_vec,
+  distance2 = "logit",
+  caliper = caliper_val,
+  ratio = 1,
+  discard = "both"
+)
+
+md <- 
+  match.data(m_out) %>% 
+  as_tibble() %>% 
+  rename(ps = distance)
+
+ 
+never_declared_ps_median <- md %>%
+  filter(never_declared_flag == 1) %>%
+  summarise(med = median(ps)) %>%
+  pull(med)  
+
+md <- 
+  md %>% 
+  mutate(
+    twin_score = abs(ps - never_declared_ps_median),
+    Twin_Candidate = as.integer(never_declared_flag == 0 & weights > 0)
+  )
+
+psm_out <- 
+  psm_coded_resolved %>% 
+  left_join(.,
+    md %>% select(study_id, ps, twin_score, Twin_Candidate),
+    by = "study_id") %>% 
+  mutate(Twin_Candidate = replace_na(Twin_Candidate, 0L))
+
+bal.tab(m_out, un = TRUE)
+love.plot(m_out, thresholds = c(m= 0.1))
+  
