@@ -229,6 +229,7 @@ outcome_resolved_never_declared_grouping <-
 psm_coded_resolved <- # need to select and properly encode variables of interest
   outcome_resolved_never_declared_grouping %>% 
   filter(!is.na(never_declared_outcome)) %>% 
+  filter(!is.na(first_sem_gpa)) %>% 
   select(study_id, first_sem_gpa, start_status_isu, 
          sex, ethnicity, first_generation, residency, admission_type,
          never_declared_outcome, degree_duration, degree_outcome) %>% 
@@ -237,3 +238,13 @@ psm_coded_resolved <- # need to select and properly encode variables of interest
          residency = factor(residency), admission_type = factor (admission_type),
          never_declared_outcome = factor(never_declared_outcome),
          degree_outcome = factor(degree_outcome))
+
+m.out <- # get initial estimate of balance
+  matchit(never_declared_outcome ~ first_sem_gpa + start_status_isu + sex +
+            ethnicity + first_generation + residency + admission_type,
+          data = psm_coded_resolved, method = NULL, distance = "glm")
+
+m.out1 <- 
+  matchit(never_declared_outcome ~ first_sem_gpa + start_status_isu + sex +
+            ethnicity + first_generation + residency + admission_type,
+          data = psm_coded_resolved, method = "nearest", ratio = 3, caliper = 0.05)
