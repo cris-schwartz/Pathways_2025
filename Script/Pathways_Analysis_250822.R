@@ -81,22 +81,43 @@ outcome_resolved_never_declared_grouping <-
 # )
 # 
 
-
-
 # This is a template script for column chart with x as a factor variable and y
 # as the proportion of the total in the cohort
+# print(
+#   plot_start_status_comparison <-
+#     outcome_resolved_never_declared_grouping %>%
+#     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
+#     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
+#     mutate(start_status_isu = factor(start_status_isu)) %>% 
+#     group_by(never_declared_outcome, start_status_isu) %>% 
+#     summarize(count = n()) %>% 
+#     ungroup() %>% 
+#     group_by(never_declared_outcome) %>% 
+#     mutate(proportion = count/sum(count)) %>% 
+#     ggplot(aes(x = start_status_isu, y = proportion, fill = never_declared_outcome)) +
+#     geom_col(position = "dodge", alpha = 0.5) +
+#     scale_fill_discrete( # calculate sample size to add to legend
+#       labels = function(x) { # creates a label entry based on calculation of sample size
+#         n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
+#         paste0(x, " (n = ", n_vals[x], ")")
+#       }
+#     ) +
+#     labs (x = "ISU Entrance College", y = "Proportion of Cohort", fill = "CoE Start") +
+#     theme_minimal()
+#   )
+
 print(
-  plot_start_status_comparison <-
+  plot_sex_comparison <-
     outcome_resolved_never_declared_grouping %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
-    mutate(start_status_isu = factor(start_status_isu)) %>% 
-    group_by(never_declared_outcome, start_status_isu) %>% 
+    mutate(sex = factor(sex)) %>% 
+    group_by(never_declared_outcome, sex) %>% 
     summarize(count = n()) %>% 
     ungroup() %>% 
     group_by(never_declared_outcome) %>% 
     mutate(proportion = count/sum(count)) %>% 
-    ggplot(aes(x = start_status_isu, y = proportion, fill = never_declared_outcome)) +
+    ggplot(aes(x = sex, y = proportion, fill = never_declared_outcome)) +
     geom_col(position = "dodge", alpha = 0.5) +
     scale_fill_discrete( # calculate sample size to add to legend
       labels = function(x) { # creates a label entry based on calculation of sample size
@@ -104,8 +125,6 @@ print(
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
-    labs (x = "ISU Entrance College", y = "Proportion of Cohort", fill = "CoE Start") +
+    labs (x = "Student Sex", y = "Proportion of Cohort", fill = "CoE Start") +
     theme_minimal()
-  )
-
-
+)
