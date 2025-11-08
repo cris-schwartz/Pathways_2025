@@ -272,7 +272,7 @@ m_out <- matchit(
   distance = ps_vec,
   distance2 = "logit",
   caliper = caliper_val,
-  ratio = 1,
+  ratio = 4,
   discard = "both"
 )
 
