@@ -334,7 +334,7 @@ print(
 # This is a template script for column chart with x as a factor variable and y
 # as the proportion of the total in the cohort
 print(
-  plot_start_status_comparison <- # comparison by what college they were admitted into when started at ISU
+  plot_psm_start_status_comparison <- # comparison by what college they were admitted into when started at ISU
     psm_out %>%
     group_by(cohort_label, start_status_isu) %>%
     summarize(count = n()) %>%
@@ -354,7 +354,7 @@ print(
   )
 
 print(
-  plot_sex_comparison <- # comparison of student sex
+  plot_psm_sex_comparison <- # comparison of student sex
     psm_out %>%
     group_by(cohort_label, sex) %>%
     summarize(count = n()) %>%
@@ -374,7 +374,7 @@ print(
 )
 
 print(
-  plot_ethnicity_comparison <- # comparison of student ethnicity
+  plot_psm_ethnicity_comparison <- # comparison of student ethnicity
     psm_out %>%
     group_by(cohort_label, ethnicity) %>%
     summarize(count = n()) %>%
@@ -394,7 +394,7 @@ print(
 )
 
 print(
-  plot_first_gen_comparison <- # comparison of first-generation student status
+  plot_psm_first_gen_comparison <- # comparison of first-generation student status
     psm_out %>%
     group_by(cohort_label, first_generation) %>%
     summarize(count = n()) %>%
@@ -414,7 +414,7 @@ print(
 )
 
 print(
-  plot_residency_comparison <- # comparison of residency status
+  plot_psm_residency_comparison <- # comparison of residency status
     psm_out %>%
     group_by(cohort_label, residency) %>%
     summarize(count = n()) %>%
@@ -434,7 +434,7 @@ print(
 )
 
 print(
-  plot_adm_type_comparison <- # comparison via direct from HS vs. transfer admission
+  plot_psm_adm_type_comparison <- # comparison via direct from HS vs. transfer admission
     psm_out %>%
     group_by(cohort_label, admission_type) %>%
     summarize(count = n()) %>%
