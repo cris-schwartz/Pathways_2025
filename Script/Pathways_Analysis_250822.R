@@ -272,7 +272,7 @@ m_out <- matchit(
   distance = ps_vec,
   distance2 = "logit",
   caliper = caliper_val,
-  ratio = 6,
+  ratio = 5,
   discard = "both"
 )
 
@@ -312,146 +312,146 @@ bal.tab(m_out, un = TRUE)
 love.plot(m_out, thresholds = c(m= 0.1))
 
 
-# 
-# # This is a template script for histogram with x as a continuous variable
-# print(
-#   plot_psm_gpa_comparison <-
-#     psm_out %>%
-#     ggplot(aes(x= first_sem_gpa, y = ..density.., fill = cohort_label)) +
-#     geom_histogram(position = "identity", alpha = 0.5) +
-#     scale_fill_discrete( # calculate sample size to add to legend
-#       labels = function(x) { # creates a label entry based on calculation of sample size
-#         n_vals <- table(psm_out$cohort_label)
-#         paste0(x, " (n = ", n_vals[x], ")")
-#       }
-#     ) +
-#     labs (x = "First Semester GPA", y = "Proportion of Total", fill = "CoE Start") +
-#     # scale_fill_manual(values = c("Declared", "Never Declared")) +
-#     theme_minimal()
-# )
-# # 
-# 
-# # This is a template script for column chart with x as a factor variable and y
-# # as the proportion of the total in the cohort
-# print(
-#   plot_psm_start_status_comparison <- # comparison by what college they were admitted into when started at ISU
-#     psm_out %>%
-#     group_by(cohort_label, start_status_isu) %>%
-#     summarize(count = n()) %>%
-#     ungroup() %>%
-#     group_by(cohort_label) %>%
-#     mutate(proportion = count/sum(count)) %>%
-#     ggplot(aes(x = start_status_isu, y = proportion, fill = cohort_label)) +
-#     geom_col(position = "dodge", alpha = 0.5) +
-#     scale_fill_discrete( # calculate sample size to add to legend
-#       labels = function(x) { # creates a label entry based on calculation of sample size
-#         n_vals <- table(psm_out$cohort_label)
-#         paste0(x, " (n = ", n_vals[x], ")")
-#       }
-#     ) +
-#     labs (x = "ISU Entrance College", y = "Proportion of Cohort", fill = "CoE Start") +
-#     theme_minimal()
-#   )
-# 
-# print(
-#   plot_psm_sex_comparison <- # comparison of student sex
-#     psm_out %>%
-#     group_by(cohort_label, sex) %>%
-#     summarize(count = n()) %>%
-#     ungroup() %>%
-#     group_by(cohort_label) %>%
-#     mutate(proportion = count/sum(count)) %>%
-#     ggplot(aes(x = sex, y = proportion, fill = cohort_label)) +
-#     geom_col(position = "dodge", alpha = 0.5) +
-#     scale_fill_discrete( # calculate sample size to add to legend
-#       labels = function(x) { # creates a label entry based on calculation of sample size
-#         n_vals <- table(psm_out$cohort_label)
-#         paste0(x, " (n = ", n_vals[x], ")")
-#       }
-#     ) +
-#     labs (x = "Student Sex", y = "Proportion of Cohort", fill = "CoE Start") +
-#     theme_minimal()
-# )
-# 
-# print(
-#   plot_psm_ethnicity_comparison <- # comparison of student ethnicity
-#     psm_out %>%
-#     group_by(cohort_label, ethnicity) %>%
-#     summarize(count = n()) %>%
-#     ungroup() %>%
-#     group_by(cohort_label) %>%
-#     mutate(proportion = count/sum(count)) %>%
-#     ggplot(aes(x = ethnicity, y = proportion, fill = cohort_label)) +
-#     geom_col(position = "dodge", alpha = 0.5) +
-#     scale_fill_discrete( # calculate sample size to add to legend
-#       labels = function(x) { # creates a label entry based on calculation of sample size
-#         n_vals <- table(psm_out$cohort_label)
-#         paste0(x, " (n = ", n_vals[x], ")")
-#       }
-#     ) +
-#     labs (x = "Student Ethnicity", y = "Proportion of Cohort", fill = "CoE Start") +
-#     theme_minimal()
-# )
-# 
-# print(
-#   plot_psm_first_gen_comparison <- # comparison of first-generation student status
-#     psm_out %>%
-#     group_by(cohort_label, first_generation) %>%
-#     summarize(count = n()) %>%
-#     ungroup() %>%
-#     group_by(cohort_label) %>%
-#     mutate(proportion = count/sum(count)) %>%
-#     ggplot(aes(x = first_generation, y = proportion, fill = cohort_label)) +
-#     geom_col(position = "dodge", alpha = 0.5) +
-#     scale_fill_discrete( # calculate sample size to add to legend
-#       labels = function(x) { # creates a label entry based on calculation of sample size
-#         n_vals <- table(psm_out$cohort_label)
-#         paste0(x, " (n = ", n_vals[x], ")")
-#       }
-#     ) +
-#     labs (x = "First Generation Status", y = "Proportion of Cohort", fill = "CoE Start") +
-#     theme_minimal()
-# )
-# 
-# print(
-#   plot_psm_residency_comparison <- # comparison of residency status
-#     psm_out %>%
-#     group_by(cohort_label, residency) %>%
-#     summarize(count = n()) %>%
-#     ungroup() %>%
-#     group_by(cohort_label) %>%
-#     mutate(proportion = count/sum(count)) %>%
-#     ggplot(aes(x = residency, y = proportion, fill = cohort_label)) +
-#     geom_col(position = "dodge", alpha = 0.5) +
-#     scale_fill_discrete( # calculate sample size to add to legend
-#       labels = function(x) { # creates a label entry based on calculation of sample size
-#         n_vals <- table(psm_out$cohort_label)
-#         paste0(x, " (n = ", n_vals[x], ")")
-#       }
-#     ) +
-#     labs (x = "Residency Status", y = "Proportion of Cohort", fill = "CoE Start") +
-#     theme_minimal()
-# )
-# 
-# print(
-#   plot_psm_adm_type_comparison <- # comparison via direct from HS vs. transfer admission
-#     psm_out %>%
-#     group_by(cohort_label, admission_type) %>%
-#     summarize(count = n()) %>%
-#     ungroup() %>%
-#     group_by(cohort_label) %>%
-#     mutate(proportion = count/sum(count)) %>%
-#     ggplot(aes(x = admission_type, y = proportion, fill = cohort_label)) +
-#     geom_col(position = "dodge", alpha = 0.5) +
-#     scale_fill_discrete( # calculate sample size to add to legend
-#       labels = function(x) { # creates a label entry based on calculation of sample size
-#         n_vals <- table(psm_out$cohort_label)
-#         paste0(x, " (n = ", n_vals[x], ")")
-#       }
-#     ) +
-#     labs (x = "Admission Type", y = "Proportion of Cohort", fill = "CoE Start") +
-#     theme_minimal()
-# )
+
+# This is a template script for histogram with x as a continuous variable
+print(
+  plot_psm_gpa_comparison <-
+    psm_out %>%
+    ggplot(aes(x= first_sem_gpa, y = after_stat(density), fill = cohort_label)) +
+    geom_histogram(position = "identity", alpha = 0.5) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(psm_out$cohort_label)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "First Semester GPA", y = "Proportion of Total", fill = "CoE Start") +
+    # scale_fill_manual(values = c("Declared", "Never Declared")) +
+    theme_minimal()
+)
+#
+
+# This is a template script for column chart with x as a factor variable and y
+# as the proportion of the total in the cohort
+print(
+  plot_psm_start_status_comparison <- # comparison by what college they were admitted into when started at ISU
+    psm_out %>%
+    group_by(cohort_label, start_status_isu) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    group_by(cohort_label) %>%
+    mutate(proportion = count/sum(count)) %>%
+    ggplot(aes(x = start_status_isu, y = proportion, fill = cohort_label)) +
+    geom_col(position = "dodge", alpha = 1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(psm_out$cohort_label)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "ISU Entrance College", y = "Proportion of Cohort", fill = "CoE Start") +
+    theme_minimal()
+  )
+
+print(
+  plot_psm_sex_comparison <- # comparison of student sex
+    psm_out %>%
+    group_by(cohort_label, sex) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    group_by(cohort_label) %>%
+    mutate(proportion = count/sum(count)) %>%
+    ggplot(aes(x = sex, y = proportion, fill = cohort_label)) +
+    geom_col(position = "dodge", alpha = 1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(psm_out$cohort_label)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "Student Sex", y = "Proportion of Cohort", fill = "CoE Start") +
+    theme_minimal()
+)
+
+print(
+  plot_psm_ethnicity_comparison <- # comparison of student ethnicity
+    psm_out %>%
+    group_by(cohort_label, ethnicity) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    group_by(cohort_label) %>%
+    mutate(proportion = count/sum(count)) %>%
+    ggplot(aes(x = ethnicity, y = proportion, fill = cohort_label)) +
+    geom_col(position = "dodge", alpha = 1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(psm_out$cohort_label)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "Student Ethnicity", y = "Proportion of Cohort", fill = "CoE Start") +
+    theme_minimal()
+)
+
+print(
+  plot_psm_first_gen_comparison <- # comparison of first-generation student status
+    psm_out %>%
+    group_by(cohort_label, first_generation) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    group_by(cohort_label) %>%
+    mutate(proportion = count/sum(count)) %>%
+    ggplot(aes(x = first_generation, y = proportion, fill = cohort_label)) +
+    geom_col(position = "dodge", alpha = 1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(psm_out$cohort_label)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "First Generation Status", y = "Proportion of Cohort", fill = "CoE Start") +
+    theme_minimal()
+)
+
+print(
+  plot_psm_residency_comparison <- # comparison of residency status
+    psm_out %>%
+    group_by(cohort_label, residency) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    group_by(cohort_label) %>%
+    mutate(proportion = count/sum(count)) %>%
+    ggplot(aes(x = residency, y = proportion, fill = cohort_label)) +
+    geom_col(position = "dodge", alpha = 1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(psm_out$cohort_label)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "Residency Status", y = "Proportion of Cohort", fill = "CoE Start") +
+    theme_minimal()
+)
+
+print(
+  plot_psm_adm_type_comparison <- # comparison via direct from HS vs. transfer admission
+    psm_out %>%
+    group_by(cohort_label, admission_type) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    group_by(cohort_label) %>%
+    mutate(proportion = count/sum(count)) %>%
+    ggplot(aes(x = admission_type, y = proportion, fill = cohort_label)) +
+    geom_col(position = "dodge", alpha = 1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(psm_out$cohort_label)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "Admission Type", y = "Proportion of Cohort", fill = "CoE Start") +
+    theme_minimal()
+)
 
 # Analysis of success outcomes for declared twin cohort vs never declareds
 
