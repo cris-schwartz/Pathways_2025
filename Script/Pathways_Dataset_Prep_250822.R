@@ -161,7 +161,7 @@ pathway_summary <- # summarize records to single row per student
             sex = first(sex), ethnicity = first(ethnicity), first_generation = first(first_generation),
             veteran = first(veteran), residency = first(residency), admission_type = first(admission_type),
             hs_code = first(hs_code),
-            first_sem_gpa = nth(sem_gpa_current,2),final_coe_gpa = last(cmltv_gpa_current)
+            first_sem_gpa = first(sem_gpa_current),final_coe_gpa = last(cmltv_gpa_current)
             ) %>%
             mutate(degree_duration = case_when( # determine the number of semesters either to degree or since ISU start
               (grad_status_dataset != 'No Degree') ~ grad_sem_id - admsn_sem_id + 1,
