@@ -12,6 +12,7 @@ library(readxl)
 library(MatchIt) # load the library for the Propensity Score Matching
 library(cobalt)
 library(broom)
+library(patchwork)
 # if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # install sankey package
 
 # LOAD AND PREPARE DATA ------------------------------------
@@ -66,27 +67,27 @@ outcome_resolved_never_declared_grouping <-
     (undeclared_start == 0) ~ 'Started in CoE Major'
   ))
 
-# This is a template script for histogram with x as a continuous variable
-# print(
-#   plot_gpa_comparison <-
-#     outcome_resolved_never_declared_grouping %>%
-#     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
-#     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
-#     ggplot(aes(x= first_sem_gpa, y = ..density.., fill = never_declared_outcome)) +
-#     geom_histogram(position = "identity", alpha = 0.5) +
-#     scale_fill_discrete( # calculate sample size to add to legend
-#       labels = function(x) { # creates a label entry based on calculation of sample size
-#         n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
-#         paste0(x, " (n = ", n_vals[x], ")")
-#       }
-#     ) +
-#     labs (x = "First Semester GPA", y = "Proportion of Total", fill = "CoE Start") +
-#     theme_minimal()
-# )
-# 
+## This is a template script for histogram with x as a continuous variable
+print(
+  plot_gpa_comparison <-
+    outcome_resolved_never_declared_grouping %>%
+    filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
+    mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
+    ggplot(aes(x= first_sem_gpa, y = ..density.., fill = never_declared_outcome)) +
+    geom_histogram(position = "identity", alpha = 0.5) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "First Semester GPA", y = "Proportion of Total", fill = "CoE Start") +
+    theme_minimal()
+)
 
-# This is a template script for column chart with x as a factor variable and y
-# as the proportion of the total in the cohort
+
+## This is a template script for column chart with x as a factor variable and y
+## as the proportion of the total in the cohort
 # print(
 #   plot_start_status_comparison <- # comparison by what college they were admitted into when started at ISU
 #     outcome_resolved_never_declared_grouping %>%
