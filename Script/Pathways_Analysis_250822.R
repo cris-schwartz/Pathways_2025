@@ -286,8 +286,9 @@ options(ggplot2.discrete.color = c("#1F78B4", "#E69F00", "#33A02C"))
 # combine all into a single figure    
 plot_gpa_comparison <- plot_gpa_comparison + guides(fill = "none") # turn off legend of gpa plot so patchwork does not count it as different
 print(plot_gpa_comparison + plot_start_status_comparison + plot_sex_comparison + plot_ethnicity_comparison + plot_first_gen_comparison +
-plot_residency_comparison + plot_adm_type_comparison + plot_grad_status_comparison + guide_area() +
-plot_layout(ncol = 3, axes = "collect", guides = "collect"))
+  plot_residency_comparison + plot_adm_type_comparison + plot_grad_status_comparison + guide_area() +
+  plot_layout(ncol = 3, axes = "collect", guides = "collect") +
+  plot_annotation(title = "Demographics and graduation outcomes of CoE Students who never declared a CoE major"))
   
 
 
