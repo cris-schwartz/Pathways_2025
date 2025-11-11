@@ -67,7 +67,12 @@ outcome_resolved_never_declared_grouping <-
     (undeclared_start == 0) ~ 'Started in CoE Major'
   ))
 
+# Set default color options to ensure good contrast if printed in grayscale
+options(ggplot2.discrete.fill = c("#1F78B4", "#E69F00", "#33A02C"))
+options(ggplot2.discrete.color = c("#1F78B4", "#E69F00", "#33A02C"))
+
 ## This is a template script for histogram with x as a continuous variable
+
 # print(
   plot_gpa_comparison <-
     outcome_resolved_never_declared_grouping %>%
@@ -82,7 +87,8 @@ outcome_resolved_never_declared_grouping <-
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
-    labs (x = "First Semester GPA", y = "Proportion of Total", fill = "CoE Start") +
+    # scale_fill_manual(values = c("Never Declared" = "#0072B2", "Started in CoE Major" = "#E69F00")) +
+    labs (x = "First Semester GPA", y = "Proportion of Cohort", fill = "CoE Start") + 
     theme_minimal()
 # )
 
@@ -102,14 +108,14 @@ outcome_resolved_never_declared_grouping <-
     mutate(proportion = count/sum(count)) %>%
     ggplot(aes(x = start_status_isu, y = proportion, fill = never_declared_outcome)) +
     ylim(0,1) + # set y axis limits from 0 to 1
-    geom_col(position = "dodge", alpha = 0.5) +
+    geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
       labels = function(x) { # creates a label entry based on calculation of sample size
         n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
-    labs (x = "ISU Entrance College", y = "Proportion of Cohort", fill = "CoE Start") +
+    labs (x = "ISU College of Admittance", y = "Proportion of Cohort", fill = "CoE Start") +
     theme_minimal()
 #   )
 
@@ -126,7 +132,7 @@ outcome_resolved_never_declared_grouping <-
     mutate(proportion = count/sum(count)) %>%
     ggplot(aes(x = sex, y = proportion, fill = never_declared_outcome)) +
     ylim(0,1) + # set y axis limits from 0 to 1
-    geom_col(position = "dodge", alpha = 0.5) +
+    geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
       labels = function(x) { # creates a label entry based on calculation of sample size
         n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
@@ -142,6 +148,18 @@ outcome_resolved_never_declared_grouping <-
     outcome_resolved_never_declared_grouping %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
+    mutate(ethnicity = case_when(
+      (ethnicity == "American Indian or Alaska Native") ~ "A.In.",
+      (ethnicity == "Asian") ~ "As.",
+      (ethnicity == "Black or African American") ~ "Af.Am.",
+      (ethnicity == "Hispanic") ~ "His.",
+      (ethnicity == "International") ~ "Int.",
+      (ethnicity == "Native Hawaiian or Other Pacific Islander") ~ "NaHa.",
+      (ethnicity == "Two or more races") ~ "2/mo",
+      (ethnicity == "Unknown race and ethnicity") ~ "Un.",
+      (ethnicity == "White") ~ "Wh."
+      
+    )) %>% 
     mutate(ethnicity = factor(ethnicity)) %>%
     group_by(never_declared_outcome, ethnicity) %>%
     summarize(count = n()) %>%
@@ -150,7 +168,7 @@ outcome_resolved_never_declared_grouping <-
     mutate(proportion = count/sum(count)) %>%
     ggplot(aes(x = ethnicity, y = proportion, fill = never_declared_outcome)) +
     ylim(0,1) + # set y axis limits from 0 to 1
-    geom_col(position = "dodge", alpha = 0.5) +
+    geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
       labels = function(x) { # creates a label entry based on calculation of sample size
         n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
@@ -158,7 +176,9 @@ outcome_resolved_never_declared_grouping <-
       }
     ) +
     labs (x = "Student Ethnicity", y = "Proportion of Cohort", fill = "CoE Start") +
-    theme_minimal()
+    
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
 # )
 
 # print(
@@ -172,9 +192,10 @@ outcome_resolved_never_declared_grouping <-
     ungroup() %>%
     group_by(never_declared_outcome) %>%
     mutate(proportion = count/sum(count)) %>%
+    filter(first_generation == 1) %>% 
     ggplot(aes(x = first_generation, y = proportion, fill = never_declared_outcome)) +
     ylim(0,1) + # set y axis limits from 0 to 1
-    geom_col(position = "dodge", alpha = 0.5) +
+    geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
       labels = function(x) { # creates a label entry based on calculation of sample size
         n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
@@ -182,6 +203,7 @@ outcome_resolved_never_declared_grouping <-
       }
     ) +
     labs (x = "First Generation Status", y = "Proportion of Cohort", fill = "CoE Start") +
+    scale_x_discrete(labels = NULL) +
     theme_minimal()
 # )
 
@@ -198,13 +220,14 @@ outcome_resolved_never_declared_grouping <-
     mutate(proportion = count/sum(count)) %>%
     ggplot(aes(x = residency, y = proportion, fill = never_declared_outcome)) +
     ylim(0,1) + # set y axis limits from 0 to 1
-    geom_col(position = "dodge", alpha = 0.5) +
+    geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
       labels = function(x) { # creates a label entry based on calculation of sample size
         n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
+    # scale_fill_manual(values = c("Never Declared" = "#0072B2", "Started in CoE Major" = "#E69F00")) +
     labs (x = "Residency Status", y = "Proportion of Cohort", fill = "CoE Start") +
     theme_minimal()
 # )
@@ -222,20 +245,52 @@ outcome_resolved_never_declared_grouping <-
     mutate(proportion = count/sum(count)) %>%
     ggplot(aes(x = admission_type, y = proportion, fill = never_declared_outcome)) +
     ylim(0,1) + # set y axis limits from 0 to 1
-    geom_col(position = "dodge", alpha = 0.5) +
+    geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
       labels = function(x) { # creates a label entry based on calculation of sample size
         n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
+    # scale_fill_manual(values = c("Never Declared" = "#0072B2", "Started in CoE Major" = "#E69F00")) +
     labs (x = "Admission Type", y = "Proportion of Cohort", fill = "CoE Start") +
     theme_minimal()
 # )
 
-print(plot_gpa_comparison + plot_start_status_comparison + plot_sex_comparison + plot_ethnicity_comparison + plot_first_gen_comparison + 
-  plot_residency_comparison + plot_adm_type_comparison)
+  plot_grad_status_comparison <- # comparison of graduation rates
+    outcome_resolved_never_declared_grouping %>%
+    filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
+    mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
+    mutate(degree_outcome = factor(degree_outcome)) %>%
+    group_by(never_declared_outcome, degree_outcome) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    group_by(never_declared_outcome) %>%
+    mutate(proportion = count/sum(count)) %>%
+    filter(degree_outcome == 'Degree') %>% 
+    ggplot(aes(x = degree_outcome, y = proportion, fill = never_declared_outcome)) +
+    ylim(0,1) + # set y axis limits from 0 to 1
+    geom_col(position = "dodge", alpha = 1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    # scale_fill_manual(values = c("Never Declared" = "#0072B2", "Started in CoE Major" = "#E69F00")) +
+    labs (x = "ISU Degree Completion (any degree)", y = "Proportion who earned degree", fill = "CoE Start") +
+    scale_x_discrete(labels = NULL) +
+      # theme(axis.text.x = element_blank()) +
+    theme_minimal()
+
+# combine all into a single figure    
+plot_gpa_comparison <- plot_gpa_comparison + guides(fill = "none") # turn off legend of gpa plot so patchwork does not count it as different
+print(plot_gpa_comparison + plot_start_status_comparison + plot_sex_comparison + plot_ethnicity_comparison + plot_first_gen_comparison +
+plot_residency_comparison + plot_adm_type_comparison + plot_grad_status_comparison + guide_area() +
+plot_layout(ncol = 3, axes = "collect", guides = "collect"))
   
+
+
 # 
 
 # PROPENSITY SCORE MATCHING ASSEMBLY OF NEVER DECLARED CONTROL COHORTS ####
