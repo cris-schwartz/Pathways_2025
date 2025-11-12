@@ -72,9 +72,7 @@ options(ggplot2.discrete.fill = c("#1F78B4", "#E69F00", "#33A02C"))
 options(ggplot2.discrete.color = c("#1F78B4", "#E69F00", "#33A02C"))
 
 ## This is a template script for histogram with x as a continuous variable
-
-# print(
-  plot_gpa_comparison <-
+plot_gpa_comparison <-
     outcome_resolved_never_declared_grouping %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
@@ -89,13 +87,10 @@ options(ggplot2.discrete.color = c("#1F78B4", "#E69F00", "#33A02C"))
     ) +
     labs (x = "First Semester GPA", y = "Proportion of Cohort", fill = "CoE Start") + 
     theme_minimal()
-# )
-
 
 ## This is a template script for column chart with x as a factor variable and y
 ## as the proportion of the total in the cohort
-# print(
-  plot_start_status_comparison <- # comparison by what college they were admitted into when started at ISU
+plot_start_status_comparison <- # comparison by what college they were admitted into when started at ISU
     outcome_resolved_never_declared_grouping %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
@@ -116,10 +111,8 @@ options(ggplot2.discrete.color = c("#1F78B4", "#E69F00", "#33A02C"))
     ) +
     labs (x = "ISU College of Admittance", y = "Proportion of Cohort", fill = "CoE Start") +
     theme_minimal()
-#   )
 
-# print(
-  plot_sex_comparison <- # comparison of student sex
+plot_sex_comparison <- # comparison of student sex
     outcome_resolved_never_declared_grouping %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
@@ -140,10 +133,9 @@ options(ggplot2.discrete.color = c("#1F78B4", "#E69F00", "#33A02C"))
     ) +
     labs (x = "Student Sex", y = "Proportion of Cohort", fill = "CoE Start") +
     theme_minimal()
-# )
 
-# print(
-  plot_ethnicity_comparison <- # comparison of student ethnicity
+
+plot_ethnicity_comparison <- # comparison of student ethnicity
     outcome_resolved_never_declared_grouping %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
@@ -178,10 +170,9 @@ options(ggplot2.discrete.color = c("#1F78B4", "#E69F00", "#33A02C"))
     
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# )
 
-# print(
-  plot_first_gen_comparison <- # comparison of first-generation student status
+
+plot_first_gen_comparison <- # comparison of first-generation student status
     outcome_resolved_never_declared_grouping %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
@@ -204,10 +195,9 @@ options(ggplot2.discrete.color = c("#1F78B4", "#E69F00", "#33A02C"))
     labs (x = "First Generation Status", y = "Proportion of Cohort", fill = "CoE Start") +
     scale_x_discrete(labels = NULL) +
     theme_minimal()
-# )
 
-# print(
-  plot_residency_comparison <- # comparison of residency status
+
+plot_residency_comparison <- # comparison of residency status
     outcome_resolved_never_declared_grouping %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
@@ -226,13 +216,11 @@ options(ggplot2.discrete.color = c("#1F78B4", "#E69F00", "#33A02C"))
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
-    # scale_fill_manual(values = c("Never Declared" = "#0072B2", "Started in CoE Major" = "#E69F00")) +
     labs (x = "Residency Status", y = "Proportion of Cohort", fill = "CoE Start") +
     theme_minimal()
-# )
 
-# print(
-  plot_adm_type_comparison <- # comparison via direct from HS vs. transfer admission
+
+plot_adm_type_comparison <- # comparison via direct from HS vs. transfer admission
     outcome_resolved_never_declared_grouping %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
@@ -251,12 +239,11 @@ options(ggplot2.discrete.color = c("#1F78B4", "#E69F00", "#33A02C"))
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
-    # scale_fill_manual(values = c("Never Declared" = "#0072B2", "Started in CoE Major" = "#E69F00")) +
     labs (x = "Admission Type", y = "Proportion of Cohort", fill = "CoE Start") +
     theme_minimal()
-# )
 
-  plot_grad_status_comparison <- # comparison of graduation rates
+
+plot_grad_status_comparison <- # comparison of graduation rates
     outcome_resolved_never_declared_grouping %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
@@ -276,19 +263,17 @@ options(ggplot2.discrete.color = c("#1F78B4", "#E69F00", "#33A02C"))
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
-    # scale_fill_manual(values = c("Never Declared" = "#0072B2", "Started in CoE Major" = "#E69F00")) +
     labs (x = "ISU Degree Completion (any degree)", y = "Proportion who earned degree", fill = "CoE Start") +
     scale_x_discrete(labels = NULL) +
-      # theme(axis.text.x = element_blank()) +
     theme_minimal()
 
 # combine all into a single figure    
-# plot_gpa_comparison <- plot_gpa_comparison + guides(fill = "none") # turn off legend of gpa plot so patchwork does not count it as different
-# print(plot_gpa_comparison + plot_start_status_comparison + plot_sex_comparison + plot_ethnicity_comparison + plot_first_gen_comparison +
-#   plot_residency_comparison + plot_adm_type_comparison + plot_grad_status_comparison + guide_area() +
-#   plot_layout(ncol = 3, axes = "collect", guides = "collect") +
-#   plot_annotation(title = "Demographics and graduation outcomes of CoE Students who never declared a CoE major"))
-#   
+plot_gpa_comparison <- plot_gpa_comparison + guides(fill = "none") # turn off legend of gpa plot so patchwork does not count it as different
+print(plot_gpa_comparison + plot_start_status_comparison + plot_sex_comparison + plot_ethnicity_comparison + plot_first_gen_comparison +
+  plot_residency_comparison + plot_adm_type_comparison + plot_grad_status_comparison + guide_area() +
+  plot_layout(ncol = 3, axes = "collect", guides = "collect") +
+  plot_annotation(title = "Demographics and graduation outcomes of CoE Students who never declared a CoE major"))
+
 
 
 # 
@@ -377,7 +362,9 @@ psm_out <-
 bal.tab(m_out, un = TRUE)
 love.plot(m_out, thresholds = c(m= 0.1))
 
-
+#reset color options for psm plots
+options(ggplot2.discrete.fill = c("#1F78B4", "#c09f00", "#33A02C"))
+options(ggplot2.discrete.color = c("#1F78B4", "#c09f00", "#33A02C"))
 
 plot_psm_gpa_comparison <-
     psm_out %>%
@@ -550,23 +537,18 @@ print(plot_psm_gpa_comparison + plot_psm_start_status_comparison + plot_psm_sex_
   plot_layout(ncol = 3, axes = "collect", guides = "collect") +
   plot_annotation(title = "Comparison of never declared students with CoE demographic 'twins' "))
 
-# print(plot_psm_gpa_comparison + plot_psm_start_status_comparison + plot_psm_sex_comparison  + guide_area() +
-#         plot_layout(ncol = 3, axes = "collect", guides = "collect") +
-#         plot_annotation(title = "Comparison of CoE students who never declared a CoE major with their demographic 'twins' who started ISU in a CoE major"))
-
-
 
 never_declared_degree_comparison <- # compared degree completion rates with twin cohort
   psm_out %>% 
   group_by(cohort_label, degree_outcome, graduated_college) %>% 
-  summarize(count = n()) %>% 
+  summarise(count = n()) %>% 
   ungroup() %>% 
   group_by(cohort_label) %>% 
-  summarize(degree_outcome = degree_outcome, graduated_college = graduated_college,
-            count = count, proportion = count/sum(count))
+  mutate(proportion = count/sum(count))
 
 never_declared_duration_comparison <- # compare degree completion time with twin cohort
   psm_out %>%
   filter(degree_outcome == "Degree") %>% 
   group_by(cohort_label) %>% 
-  summarize(count = n(), mean_duration = mean(degree_duration))
+  summarize(count = n(), mean_duration = mean(degree_duration)) 
+
