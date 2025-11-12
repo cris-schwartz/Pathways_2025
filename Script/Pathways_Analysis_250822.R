@@ -72,16 +72,21 @@ options(ggplot2.discrete.fill = c("#1F78B4", "#E69F00", "#33A02C"))
 options(ggplot2.discrete.color = c("#1F78B4", "#E69F00", "#33A02C"))
 
 ## This is a template script for histogram with x as a continuous variable
+outcome_resolved_with_gpa <- # because first semester gpa is a point of comparison, only select students with a first sem gpa
+  outcome_resolved_never_declared_grouping %>% 
+  filter(!is.na(first_sem_gpa))
+  
 plot_gpa_comparison <-
-    outcome_resolved_never_declared_grouping %>%
+    outcome_resolved_with_gpa %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
     ggplot(aes(x= first_sem_gpa, y = after_stat(density), fill = never_declared_outcome)) +
+    # ggplot(aes(x= first_sem_gpa, fill = never_declared_outcome)) +
     ylim(0,1) + # set y axis limits from 0 to 1
-    geom_histogram(position = "identity", alpha = 0.5) +
+    geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.1) +
     scale_fill_discrete( # calculate sample size to add to legend
       labels = function(x) { # creates a label entry based on calculation of sample size
-        n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
+        n_vals <- table(outcome_resolved_with_gpa$never_declared_outcome)
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
@@ -91,7 +96,7 @@ plot_gpa_comparison <-
 ## This is a template script for column chart with x as a factor variable and y
 ## as the proportion of the total in the cohort
 plot_start_status_comparison <- # comparison by what college they were admitted into when started at ISU
-    outcome_resolved_never_declared_grouping %>%
+    outcome_resolved_with_gpa %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
     mutate(start_status_isu = factor(start_status_isu)) %>%
@@ -105,7 +110,7 @@ plot_start_status_comparison <- # comparison by what college they were admitted 
     geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
       labels = function(x) { # creates a label entry based on calculation of sample size
-        n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
+        n_vals <- table(outcome_resolved_with_gpa$never_declared_outcome)
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
@@ -113,7 +118,7 @@ plot_start_status_comparison <- # comparison by what college they were admitted 
     theme_minimal()
 
 plot_sex_comparison <- # comparison of student sex
-    outcome_resolved_never_declared_grouping %>%
+    outcome_resolved_with_gpa %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
     mutate(sex = factor(sex)) %>%
@@ -127,7 +132,7 @@ plot_sex_comparison <- # comparison of student sex
     geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
       labels = function(x) { # creates a label entry based on calculation of sample size
-        n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
+        n_vals <- table(outcome_resolved_with_gpa$never_declared_outcome)
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
@@ -136,7 +141,7 @@ plot_sex_comparison <- # comparison of student sex
 
 
 plot_ethnicity_comparison <- # comparison of student ethnicity
-    outcome_resolved_never_declared_grouping %>%
+    outcome_resolved_with_gpa %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
     mutate(ethnicity = case_when(
@@ -162,18 +167,17 @@ plot_ethnicity_comparison <- # comparison of student ethnicity
     geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
       labels = function(x) { # creates a label entry based on calculation of sample size
-        n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
+        n_vals <- table(outcome_resolved_with_gpa$never_declared_outcome)
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
     labs (x = "Student Ethnicity", y = "Proportion of Cohort", fill = "CoE Start") +
-    
     theme_minimal() +
     theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
 plot_first_gen_comparison <- # comparison of first-generation student status
-    outcome_resolved_never_declared_grouping %>%
+    outcome_resolved_with_gpa %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
     mutate(first_generation = factor(first_generation)) %>%
@@ -188,7 +192,7 @@ plot_first_gen_comparison <- # comparison of first-generation student status
     geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
       labels = function(x) { # creates a label entry based on calculation of sample size
-        n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
+        n_vals <- table(outcome_resolved_with_gpa$never_declared_outcome)
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
@@ -198,7 +202,7 @@ plot_first_gen_comparison <- # comparison of first-generation student status
 
 
 plot_residency_comparison <- # comparison of residency status
-    outcome_resolved_never_declared_grouping %>%
+    outcome_resolved_with_gpa %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
     mutate(residency = factor(residency)) %>%
@@ -212,7 +216,7 @@ plot_residency_comparison <- # comparison of residency status
     geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
       labels = function(x) { # creates a label entry based on calculation of sample size
-        n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
+        n_vals <- table(outcome_resolved_with_gpa$never_declared_outcome)
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
@@ -221,7 +225,7 @@ plot_residency_comparison <- # comparison of residency status
 
 
 plot_adm_type_comparison <- # comparison via direct from HS vs. transfer admission
-    outcome_resolved_never_declared_grouping %>%
+    outcome_resolved_with_gpa %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
     mutate(admission_type = factor(admission_type)) %>%
@@ -235,7 +239,7 @@ plot_adm_type_comparison <- # comparison via direct from HS vs. transfer admissi
     geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
       labels = function(x) { # creates a label entry based on calculation of sample size
-        n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
+        n_vals <- table(outcome_resolved_with_gpa$never_declared_outcome)
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
@@ -244,7 +248,7 @@ plot_adm_type_comparison <- # comparison via direct from HS vs. transfer admissi
 
 
 plot_grad_status_comparison <- # comparison of graduation rates
-    outcome_resolved_never_declared_grouping %>%
+    outcome_resolved_with_gpa %>%
     filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
     mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
     mutate(degree_outcome = factor(degree_outcome)) %>%
@@ -259,7 +263,7 @@ plot_grad_status_comparison <- # comparison of graduation rates
     geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
       labels = function(x) { # creates a label entry based on calculation of sample size
-        n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
+        n_vals <- table(outcome_resolved_with_gpa$never_declared_outcome)
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
