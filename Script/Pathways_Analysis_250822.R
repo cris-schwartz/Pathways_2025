@@ -284,12 +284,12 @@ options(ggplot2.discrete.color = c("#1F78B4", "#E69F00", "#33A02C"))
     theme_minimal()
 
 # combine all into a single figure    
-plot_gpa_comparison <- plot_gpa_comparison + guides(fill = "none") # turn off legend of gpa plot so patchwork does not count it as different
-print(plot_gpa_comparison + plot_start_status_comparison + plot_sex_comparison + plot_ethnicity_comparison + plot_first_gen_comparison +
-  plot_residency_comparison + plot_adm_type_comparison + plot_grad_status_comparison + guide_area() +
-  plot_layout(ncol = 3, axes = "collect", guides = "collect") +
-  plot_annotation(title = "Demographics and graduation outcomes of CoE Students who never declared a CoE major"))
-  
+# plot_gpa_comparison <- plot_gpa_comparison + guides(fill = "none") # turn off legend of gpa plot so patchwork does not count it as different
+# print(plot_gpa_comparison + plot_start_status_comparison + plot_sex_comparison + plot_ethnicity_comparison + plot_first_gen_comparison +
+#   plot_residency_comparison + plot_adm_type_comparison + plot_grad_status_comparison + guide_area() +
+#   plot_layout(ncol = 3, axes = "collect", guides = "collect") +
+#   plot_annotation(title = "Demographics and graduation outcomes of CoE Students who never declared a CoE major"))
+#   
 
 
 # 
@@ -372,7 +372,7 @@ psm_out <-
   select(!Twin_Candidate) %>%  # remove redundant column
   filter(never_declared_flag == 1 | twin_candidate == 1) %>% 
   mutate(cohort_label = factor(if_else(
-    (never_declared_flag == 1),"Never Declared", "Declared"
+    (never_declared_flag == 1),"Never Declared", "'Twins' who Declared"
   )))
   
 bal.tab(m_out, un = TRUE)
@@ -385,6 +385,7 @@ love.plot(m_out, thresholds = c(m= 0.1))
   plot_psm_gpa_comparison <-
     psm_out %>%
     ggplot(aes(x= first_sem_gpa, y = after_stat(density), fill = cohort_label)) +
+    ylim(0,1) + # set y axis limits from 0 to 1
     geom_histogram(position = "identity", alpha = 0.5) +
     scale_fill_discrete( # calculate sample size to add to legend
       labels = function(x) { # creates a label entry based on calculation of sample size
@@ -393,10 +394,27 @@ love.plot(m_out, thresholds = c(m= 0.1))
       }
     ) +
     labs (x = "First Semester GPA", y = "Proportion of Total", fill = "CoE Start") +
-    # scale_fill_manual(values = c("Declared", "Never Declared")) +
     theme_minimal()
 # )
 #
+  
+  # plot_psm_gpa_comparison <-
+  #   outcome_resolved_never_declared_grouping %>%
+  #   filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
+  #   mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
+  #   ggplot(aes(x= first_sem_gpa, y = after_stat(density), fill = never_declared_outcome)) +
+  #   ylim(0,1) + # set y axis limits from 0 to 1
+  #   geom_histogram(position = "identity", alpha = 0.5) +
+  #   scale_fill_discrete( # calculate sample size to add to legend
+  #     labels = function(x) { # creates a label entry based on calculation of sample size
+  #       n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
+  #       paste0(x, " (n = ", n_vals[x], ")")
+  #     }
+  #   ) +
+  #   # scale_fill_manual(values = c("Never Declared" = "#0072B2", "Started in CoE Major" = "#E69F00")) +
+  #   labs (x = "First Semester GPA", y = "Proportion of Cohort", fill = "CoE Start") + 
+  #   theme_minimal()  
+  
 
 # This is a template script for column chart with x as a factor variable and y
 # as the proportion of the total in the cohort
