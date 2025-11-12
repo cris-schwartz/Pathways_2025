@@ -87,7 +87,6 @@ options(ggplot2.discrete.color = c("#1F78B4", "#E69F00", "#33A02C"))
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
-    # scale_fill_manual(values = c("Never Declared" = "#0072B2", "Started in CoE Major" = "#E69F00")) +
     labs (x = "First Semester GPA", y = "Proportion of Cohort", fill = "CoE Start") + 
     theme_minimal()
 # )
@@ -380,11 +379,9 @@ love.plot(m_out, thresholds = c(m= 0.1))
 
 
 
-# This is a template script for histogram with x as a continuous variable
-# print(
-  plot_psm_gpa_comparison <-
+plot_psm_gpa_comparison <-
     psm_out %>%
-    ggplot(aes(x= first_sem_gpa, y = after_stat(density), fill = cohort_label)) +
+    ggplot(aes(x= first_sem_gpa, y = after_stat(density), fill = fct_rev(cohort_label))) + # fct_rev makes order same as earlier plots
     ylim(0,1) + # set y axis limits from 0 to 1
     geom_histogram(position = "identity", alpha = 0.5) +
     scale_fill_discrete( # calculate sample size to add to legend
@@ -395,38 +392,15 @@ love.plot(m_out, thresholds = c(m= 0.1))
     ) +
     labs (x = "First Semester GPA", y = "Proportion of Total", fill = "CoE Start") +
     theme_minimal()
-# )
-#
-  
-  # plot_psm_gpa_comparison <-
-  #   outcome_resolved_never_declared_grouping %>%
-  #   filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
-  #   mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
-  #   ggplot(aes(x= first_sem_gpa, y = after_stat(density), fill = never_declared_outcome)) +
-  #   ylim(0,1) + # set y axis limits from 0 to 1
-  #   geom_histogram(position = "identity", alpha = 0.5) +
-  #   scale_fill_discrete( # calculate sample size to add to legend
-  #     labels = function(x) { # creates a label entry based on calculation of sample size
-  #       n_vals <- table(outcome_resolved_never_declared_grouping$never_declared_outcome)
-  #       paste0(x, " (n = ", n_vals[x], ")")
-  #     }
-  #   ) +
-  #   # scale_fill_manual(values = c("Never Declared" = "#0072B2", "Started in CoE Major" = "#E69F00")) +
-  #   labs (x = "First Semester GPA", y = "Proportion of Cohort", fill = "CoE Start") + 
-  #   theme_minimal()  
-  
 
-# This is a template script for column chart with x as a factor variable and y
-# as the proportion of the total in the cohort
-# print(
-  plot_psm_start_status_comparison <- # comparison by what college they were admitted into when started at ISU
+plot_psm_start_status_comparison <- # comparison by what college they were admitted into when started at ISU
     psm_out %>%
     group_by(cohort_label, start_status_isu) %>%
     summarize(count = n()) %>%
     ungroup() %>%
     group_by(cohort_label) %>%
     mutate(proportion = count/sum(count)) %>%
-    ggplot(aes(x = start_status_isu, y = proportion, fill = cohort_label)) +
+    ggplot(aes(x = start_status_isu, y = proportion, fill = fct_rev(cohort_label))) +
     ylim(0,1) + # set y axis limits from 0 to 1
     geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
@@ -435,19 +409,17 @@ love.plot(m_out, thresholds = c(m= 0.1))
         paste0(x, " (n = ", n_vals[x], ")")
       }
     ) +
-    labs (x = "ISU Entrance College", y = "Proportion of Cohort", fill = "CoE Start") +
+    labs (x = "ISU College of Admittance", y = "Proportion of Cohort", fill = "CoE Start") +
     theme_minimal()
-#  )
 
-# print(
-  plot_psm_sex_comparison <- # comparison of student sex
+plot_psm_sex_comparison <- # comparison of student sex
     psm_out %>%
     group_by(cohort_label, sex) %>%
     summarize(count = n()) %>%
     ungroup() %>%
     group_by(cohort_label) %>%
     mutate(proportion = count/sum(count)) %>%
-    ggplot(aes(x = sex, y = proportion, fill = cohort_label)) +
+    ggplot(aes(x = sex, y = proportion, fill = fct_rev(cohort_label))) +
     ylim(0,1) + # set y axis limits from 0 to 1
     geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
@@ -458,17 +430,27 @@ love.plot(m_out, thresholds = c(m= 0.1))
     ) +
     labs (x = "Student Sex", y = "Proportion of Cohort", fill = "CoE Start") +
     theme_minimal()
-# )
 
-# print(
-  plot_psm_ethnicity_comparison <- # comparison of student ethnicity
+plot_psm_ethnicity_comparison <- # comparison of student ethnicity
     psm_out %>%
+    mutate(ethnicity = case_when(
+      (ethnicity == "American Indian or Alaska Native") ~ "A.In.",
+      (ethnicity == "Asian") ~ "As.",
+      (ethnicity == "Black or African American") ~ "Af.Am.",
+      (ethnicity == "Hispanic") ~ "His.",
+      (ethnicity == "International") ~ "Int.",
+      (ethnicity == "Native Hawaiian or Other Pacific Islander") ~ "NaHa.",
+      (ethnicity == "Two or more races") ~ "2/mo",
+      (ethnicity == "Unknown race and ethnicity") ~ "Un.",
+      (ethnicity == "White") ~ "Wh."
+    )) %>% 
+    mutate(ethnicity = factor(ethnicity)) %>%
     group_by(cohort_label, ethnicity) %>%
     summarize(count = n()) %>%
     ungroup() %>%
     group_by(cohort_label) %>%
     mutate(proportion = count/sum(count)) %>%
-    ggplot(aes(x = ethnicity, y = proportion, fill = cohort_label)) +
+    ggplot(aes(x = ethnicity, y = proportion, fill = fct_rev(cohort_label))) +
     ylim(0,1) + # set y axis limits from 0 to 1
     geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
@@ -478,18 +460,18 @@ love.plot(m_out, thresholds = c(m= 0.1))
       }
     ) +
     labs (x = "Student Ethnicity", y = "Proportion of Cohort", fill = "CoE Start") +
-    theme_minimal()
-# )
-
-# print(
-  plot_psm_first_gen_comparison <- # comparison of first-generation student status
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+  
+plot_psm_first_gen_comparison <- # comparison of first-generation student status
     psm_out %>%
     group_by(cohort_label, first_generation) %>%
     summarize(count = n()) %>%
     ungroup() %>%
     group_by(cohort_label) %>%
     mutate(proportion = count/sum(count)) %>%
-    ggplot(aes(x = first_generation, y = proportion, fill = cohort_label)) +
+    filter(first_generation == 1) %>% 
+    ggplot(aes(x = first_generation, y = proportion, fill = fct_rev(cohort_label))) +
     ylim(0,1) + # set y axis limits from 0 to 1
     geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
@@ -499,18 +481,17 @@ love.plot(m_out, thresholds = c(m= 0.1))
       }
     ) +
     labs (x = "First Generation Status", y = "Proportion of Cohort", fill = "CoE Start") +
+    scale_x_discrete(labels = NULL) +
     theme_minimal()
-# )
 
-# print(
-  plot_psm_residency_comparison <- # comparison of residency status
+plot_psm_residency_comparison <- # comparison of residency status
     psm_out %>%
     group_by(cohort_label, residency) %>%
     summarize(count = n()) %>%
     ungroup() %>%
     group_by(cohort_label) %>%
     mutate(proportion = count/sum(count)) %>%
-    ggplot(aes(x = residency, y = proportion, fill = cohort_label)) +
+    ggplot(aes(x = residency, y = proportion, fill = fct_rev(cohort_label))) +
     ylim(0,1) + # set y axis limits from 0 to 1
     geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
@@ -521,17 +502,15 @@ love.plot(m_out, thresholds = c(m= 0.1))
     ) +
     labs (x = "Residency Status", y = "Proportion of Cohort", fill = "CoE Start") +
     theme_minimal()
-# )
 
-# print(
-  plot_psm_adm_type_comparison <- # comparison via direct from HS vs. transfer admission
+plot_psm_adm_type_comparison <- # comparison via direct from HS vs. transfer admission
     psm_out %>%
     group_by(cohort_label, admission_type) %>%
     summarize(count = n()) %>%
     ungroup() %>%
     group_by(cohort_label) %>%
     mutate(proportion = count/sum(count)) %>%
-    ggplot(aes(x = admission_type, y = proportion, fill = cohort_label)) +
+    ggplot(aes(x = admission_type, y = proportion, fill = fct_rev(cohort_label))) +
     ylim(0,1) + # set y axis limits from 0 to 1
     geom_col(position = "dodge", alpha = 1) +
     scale_fill_discrete( # calculate sample size to add to legend
@@ -542,9 +521,40 @@ love.plot(m_out, thresholds = c(m= 0.1))
     ) +
     labs (x = "Admission Type", y = "Proportion of Cohort", fill = "CoE Start") +
     theme_minimal()
-# )
 
-# Analysis of success outcomes for declared twin cohort vs never declareds
+plot_psm_grad_status_comparison <- # comparison of graduation rates
+  psm_out %>%
+  group_by(cohort_label, degree_outcome) %>%
+  summarize(count = n()) %>%
+  ungroup() %>%
+  group_by(cohort_label) %>%
+  mutate(proportion = count/sum(count)) %>%
+  filter(degree_outcome == 'Degree') %>% 
+  ggplot(aes(x = degree_outcome, y = proportion, fill = fct_rev(cohort_label))) +
+  ylim(0,1) + # set y axis limits from 0 to 1
+  geom_col(position = "dodge", alpha = 1) +
+  scale_fill_discrete( # calculate sample size to add to legend
+    labels = function(x) { # creates a label entry based on calculation of sample size
+      n_vals <- table(psm_out$cohort_label)
+      paste0(x, " (n = ", n_vals[x], ")")
+    }
+  ) +
+  labs (x = "ISU Degree Completion (any degree)", y = "Proportion who earned degree", fill = "CoE Start") +
+  scale_x_discrete(labels = NULL) +
+  theme_minimal()
+
+# combine all into a single figure    
+plot_psm_gpa_comparison <- plot_psm_gpa_comparison + guides(fill = "none") # turn off legend of gpa plot so patchwork does not count it as different
+print(plot_psm_gpa_comparison + plot_psm_start_status_comparison + plot_psm_sex_comparison + plot_psm_ethnicity_comparison + plot_psm_first_gen_comparison +
+  plot_psm_residency_comparison + plot_psm_adm_type_comparison + plot_psm_grad_status_comparison + guide_area() +
+  plot_layout(ncol = 3, axes = "collect", guides = "collect") +
+  plot_annotation(title = "Comparison of never declared students with CoE demographic 'twins' "))
+
+# print(plot_psm_gpa_comparison + plot_psm_start_status_comparison + plot_psm_sex_comparison  + guide_area() +
+#         plot_layout(ncol = 3, axes = "collect", guides = "collect") +
+#         plot_annotation(title = "Comparison of CoE students who never declared a CoE major with their demographic 'twins' who started ISU in a CoE major"))
+
+
 
 never_declared_degree_comparison <- # compared degree completion rates with twin cohort
   psm_out %>% 
