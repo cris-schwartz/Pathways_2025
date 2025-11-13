@@ -565,18 +565,33 @@ outcomes_duration_normalized <- # structure data to plot results vs. number of s
          major_first = factor(major_first), start_status_isu = factor(start_status_isu),
          grad_status_dataset = factor(grad_status_dataset), degree_outcome = factor(degree_outcome))
 
-plot_isu_degree_outcome_by_coe_duration <- 
-  outcomes_duration_normalized %>%
-  group_by(coe_duration,undeclared_start,degree_outcome) %>% 
+# Reset default color options
+options(ggplot2.discrete.fill = c("#33A02C", "#E69F00", "#1f78b4"))
+options(ggplot2.discrete.color = c("#33A02C", "#E69F00", "#1f78b4"))
+
+plot_isu_degree_outcome_by_coe_duration <- # get plot of ISU degree outcome performance by number of semesters spent in CoE
+  outcomes_duration_normalized %>% 
+  group_by(coe_duration, undeclared_start, degree_outcome) %>% 
   summarize(count = n()) %>% 
-  ungroup %>% 
-  group_by(coe_duration) %>% 
-  mutate(grad_proportion_isu = count/sum(count)) 
+  ungroup %>%
+  group_by(coe_duration, undeclared_start) %>% 
+  mutate(grad_prop_isu = count/sum(count)) %>% 
+  filter(degree_outcome == 'Degree') %>% 
+  ungroup() %>% 
+  complete(coe_duration, undeclared_start, fill = list(degree_outcome = 'Degree', count = 0, grad_prop_isu = 0)) %>% # fill in missing rows for plot
+  mutate(undeclared_start = if_else(
+    (undeclared_start == 0), 'Declared Major', 'Undeclared'
+  )) %>% 
+  ggplot(aes(x = coe_duration, y = grad_prop_isu, fill = fct_rev(undeclared_start))) +
+  ylim(0,1) +
+  geom_col(position = "dodge") +
+  labs (x = "Number of semesters that student spent in CoE", y = "Proportion of students earning any ISU degree", fill = "First CoE Semester") +
+  theme_minimal()
 
-  filter(degree_outcome == 'Degree')
+print(plot_isu_degree_outcome_by_coe_duration)
+  
+  
 
-  ggplot(aes(x = coe_duration, y = grad_proportion_isu, fill = undeclared_start)) +
-  geom_col(position = "dodge", alpha = 1)
 
 
 # plot_start_status_comparison <- # comparison by what college they were admitted into when started at ISU
