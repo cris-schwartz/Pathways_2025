@@ -566,8 +566,8 @@ outcomes_duration_normalized <- # structure data to plot results vs. number of s
          grad_status_dataset = factor(grad_status_dataset), degree_outcome = factor(degree_outcome))
 
 # Reset default color options
-options(ggplot2.discrete.fill = c("#33A02C", "#E69F00", "#1f78b4"))
-options(ggplot2.discrete.color = c("#33A02C", "#E69F00", "#1f78b4"))
+options(ggplot2.discrete.fill = c("#1f78ff", "#E69F00", "#33A02C"))
+options(ggplot2.discrete.color = c("#1f78ff", "#E69F00", "#33A02C"))
 
 plot_isu_degree_outcome_by_coe_duration <- # get plot of ISU degree outcome performance by number of semesters spent in CoE
   outcomes_duration_normalized %>% 
@@ -588,47 +588,26 @@ plot_isu_degree_outcome_by_coe_duration <- # get plot of ISU degree outcome perf
   labs (x = "Number of semesters that student spent in CoE", y = "Proportion of students earning any ISU degree", fill = "First CoE Semester") +
   theme_minimal()
 
-print(plot_isu_degree_outcome_by_coe_duration)
-  
-  
+plot_coe_degree_outcome_by_coe_duration <- # get plot of ISU degree outcome performance by number of semesters spent in CoE
+  outcomes_duration_normalized %>% 
+  group_by(coe_duration, undeclared_start, grad_status_dataset) %>% 
+  summarize(count = n()) %>% 
+  ungroup %>%
+  group_by(coe_duration, undeclared_start) %>% 
+  mutate(grad_prop_coe = count/sum(count)) %>% 
+  filter(grad_status_dataset == 'Engineering Degree') %>% 
+  ungroup() %>% 
+  complete(coe_duration, undeclared_start, fill = list(grad_status_dataset = 'Engineering Degree', count = 0, grad_prop_coe = 0)) %>% # fill in missing rows for plot
+  mutate(undeclared_start = if_else(
+    (undeclared_start == 0), 'Declared Major', 'Undeclared'
+  )) %>% 
+  ggplot(aes(x = coe_duration, y = grad_prop_coe, fill = fct_rev(undeclared_start))) +
+  ylim(0,1) +
+  geom_col(position = "dodge") +
+  labs (x = "Number of semesters that student spent in CoE", y = "Proportion of students earning CoE degree", fill = "First CoE Semester") +
+  theme_minimal()  
 
+print(plot_isu_degree_outcome_by_coe_duration + plot_coe_degree_outcome_by_coe_duration + # combine into single figure
+        plot_layout(axes = "collect", guides = "collect") +
+        plot_annotation(title = "Graduation outcomes based on semesters spent in CoE"))
 
-
-# plot_start_status_comparison <- # comparison by what college they were admitted into when started at ISU
-#   outcome_resolved_with_gpa %>%
-#   filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
-#   mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
-#   mutate(start_status_isu = factor(start_status_isu)) %>%
-#   group_by(never_declared_outcome, start_status_isu) %>%
-#   summarize(count = n()) %>%
-#   ungroup() %>%
-#   group_by(never_declared_outcome) %>%
-#   mutate(proportion = count/sum(count)) %>%
-#   ggplot(aes(x = start_status_isu, y = proportion, fill = never_declared_outcome)) +
-#   ylim(0,1) + # set y axis limits from 0 to 1
-#   geom_col(position = "dodge", alpha = 1) +
-#   scale_fill_discrete( # calculate sample size to add to legend
-#     labels = function(x) { # creates a label entry based on calculation of sample size
-#       n_vals <- table(outcome_resolved_with_gpa$never_declared_outcome)
-#       paste0(x, " (n = ", n_vals[x], ")")
-#     }
-#   ) +
-#   labs (x = "ISU College of Admittance", y = "Proportion of Cohort", fill = "CoE Start") +
-#   theme_minimal()
-# 
-# plot_gpa_comparison <-
-#   outcome_resolved_with_gpa %>%
-#   filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
-#   mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
-#   ggplot(aes(x= first_sem_gpa, y = after_stat(density), fill = never_declared_outcome)) +
-#   # ggplot(aes(x= first_sem_gpa, fill = never_declared_outcome)) +
-#   ylim(0,1) + # set y axis limits from 0 to 1
-#   geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.1) +
-#   scale_fill_discrete( # calculate sample size to add to legend
-#     labels = function(x) { # creates a label entry based on calculation of sample size
-#       n_vals <- table(outcome_resolved_with_gpa$never_declared_outcome)
-#       paste0(x, " (n = ", n_vals[x], ")")
-#     }
-#   ) +
-#   labs (x = "First Semester GPA", y = "Proportion of Cohort", fill = "CoE Start") + 
-#   theme_minimal()
