@@ -588,6 +588,15 @@ plot_isu_degree_outcome_by_coe_duration <- # get plot of ISU degree outcome perf
   labs (x = "Number of semesters that student spent in CoE", y = "Proportion of students earning any ISU degree", fill = "First CoE Semester") +
   theme_minimal()
 
+isu_degree_outcomes_summary <- # summary table of population sizes to accompany plot
+  outcomes_duration_normalized %>% 
+  group_by(coe_duration, undeclared_start, degree_outcome) %>% 
+  summarize(count = n()) %>% 
+  ungroup %>% 
+  group_by(coe_duration, undeclared_start) %>% 
+  mutate(total_students = sum(count)) %>% 
+  filter(degree_outcome == 'Degree')
+
 plot_coe_degree_outcome_by_coe_duration <- # get plot of ISU degree outcome performance by number of semesters spent in CoE
   outcomes_duration_normalized %>% 
   group_by(coe_duration, undeclared_start, grad_status_dataset) %>% 
@@ -606,6 +615,15 @@ plot_coe_degree_outcome_by_coe_duration <- # get plot of ISU degree outcome perf
   geom_col(position = "dodge") +
   labs (x = "Number of semesters that student spent in CoE", y = "Proportion of students earning CoE degree", fill = "First CoE Semester") +
   theme_minimal()  
+
+coe_degree_outcomes_summary <- # summary table of population sizes to accompany plot
+  outcomes_duration_normalized %>% 
+  group_by(coe_duration, undeclared_start, grad_status_dataset) %>% 
+  summarize(count = n()) %>% 
+  ungroup %>% 
+  group_by(coe_duration, undeclared_start) %>% 
+  mutate(total_students = sum(count)) %>% 
+  filter(grad_status_dataset == 'Engineering Degree')
 
 print(plot_isu_degree_outcome_by_coe_duration + plot_coe_degree_outcome_by_coe_duration + # combine into single figure
         plot_layout(axes = "collect", guides = "collect") +
