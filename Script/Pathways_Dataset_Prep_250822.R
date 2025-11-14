@@ -123,20 +123,22 @@ processed_data <-
   mutate(major_first = first(major_current)) %>%
   mutate(undeclared_start = ifelse(major_first == 'Undeclared Engineering',1,0)) %>%  # determine undeclared status
   mutate(grad_status_dataset = case_when(
-    (grad_sem_id < coe_sem_start) ~ 'No Degree', # this eliminates students who completed non-CoE degrees before starting in CoE
     (graduated_college == 'Engineering') ~ 'Engineering Degree',
     (graduated_college != 'Engineering' & !is.na(graduated_college)) ~ 'Non-Engineering Degree',
     (is.na(graduated_college)) ~ 'No Degree'
   )) %>% 
-  mutate(graduated_college = if_else( # address students who started in CoE after completing a previous degree
+  mutate(grad_status_dataset = if_else( # address students who started in CoE after completing a previous degree
+    (grad_status_dataset != 'No Degree' & (grad_sem_id < coe_sem_start)),'No Degree',grad_status_dataset
+  )) %>% 
+  mutate(graduated_college = if_else( 
     (grad_sem_id < coe_sem_start),NA, graduated_college
   )) %>% 
   mutate(graduated_program = if_else (
     (grad_sem_id < coe_sem_start),NA, graduated_program
   )) %>% 
-  mutate(admsn_sem_id = if_else(
-    (grad_sem_id < coe_sem_start), coe_sem_start, admsn_sem_id
-  )) %>% 
+  # mutate(admsn_sem_id = if_else(
+  #   (grad_sem_id < coe_sem_start), coe_sem_start, admsn_sem_id
+  # )) %>% 
   mutate(grad_sem_id = if_else(
     (grad_sem_id < coe_sem_start), NA, grad_sem_id
   )) %>% 
