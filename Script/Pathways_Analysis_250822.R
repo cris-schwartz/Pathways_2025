@@ -17,7 +17,7 @@ library(patchwork)
 
 # LOAD AND PREPARE DATA ------------------------------------
 pathway_summary <- # import the previously prepared pathway_summary csv file
-  read_csv("./Data/Student_Pathway_Summary_251110.csv", guess_max = 1000) %>% # guess_max ensures empty rows not treated as logical values 
+  read_csv("./Data/Student_Pathway_Summary_251114.csv", guess_max = 1000) %>% # guess_max ensures empty rows not treated as logical values 
   as_tibble()
 
 pathway_summary <- 
@@ -562,7 +562,7 @@ never_declared_duration_comparison <- # compare degree completion time with twin
 outcomes_duration_normalized <- # structure data to plot results vs. number of semesters in CoE
   outcome_resolved %>% 
   mutate(coe_duration = factor(coe_duration), undeclared_start = factor(undeclared_start),
-         major_first = factor(major_first), start_status_isu = factor(start_status_isu),
+         major_first = factor(major_first), start_status_isu = factor(start_status_isu), admission_type = factor(admission_type),
          grad_status_dataset = factor(grad_status_dataset), degree_outcome = factor(degree_outcome))
 
 # Reset default color options
@@ -592,10 +592,15 @@ isu_degree_outcomes_summary <- # summary table of population sizes to accompany 
   outcomes_duration_normalized %>% 
   group_by(coe_duration, undeclared_start, degree_outcome) %>% 
   summarize(count = n()) %>% 
-  ungroup %>% 
-  group_by(coe_duration, undeclared_start) %>% 
-  mutate(total_students = sum(count)) %>% 
+  ungroup %>%
+  group_by(coe_duration, undeclared_start) %>%
+  mutate(total_students = sum(count)) %>%
   filter(degree_outcome == 'Degree')
+
+isu_degrees_outcomes_admission_type <- # calculate total numbers of transfer students within these groups
+  outcomes_duration_normalized %>% 
+  group_by(coe_duration, admission_type) %>% 
+  summarise(count = n())
 
 plot_coe_degree_outcome_by_coe_duration <- # get plot of ISU degree outcome performance by number of semesters spent in CoE
   outcomes_duration_normalized %>% 
@@ -621,8 +626,8 @@ coe_degree_outcomes_summary <- # summary table of population sizes to accompany 
   group_by(coe_duration, undeclared_start, grad_status_dataset) %>% 
   summarize(count = n()) %>% 
   ungroup %>% 
-  group_by(coe_duration, undeclared_start) %>% 
-  mutate(total_students = sum(count)) %>% 
+  group_by(coe_duration, undeclared_start) %>%
+  mutate(total_students = sum(count)) %>%
   filter(grad_status_dataset == 'Engineering Degree')
 
 print(plot_isu_degree_outcome_by_coe_duration + plot_coe_degree_outcome_by_coe_duration + # combine into single figure
