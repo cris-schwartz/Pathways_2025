@@ -13,6 +13,7 @@ library(MatchIt) # load the library for the Propensity Score Matching
 library(cobalt)
 library(broom)
 library(patchwork)
+library(glue)
 # if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # install sankey package
 
 # LOAD AND PREPARE DATA ------------------------------------
@@ -573,11 +574,19 @@ options(ggplot2.discrete.color = c("#1f78ff", "#E69F00", "#33A02C"))
 
 cohort_outcomes_study = 1 # set the trigger to analyze by specified cohort
 if (cohort_outcomes_study == 1) { # modify the tibble by filtering if necessary
-outcomes_duration_normalized <- 
+  outcomes_duration_normalized <- 
   outcomes_duration_normalized %>%
-  mutate
-  filter()
-}
+  mutate(coe_program = if_else( # get assigned to program if started undeclared
+    (undeclared_start == 0),major_first,major_second
+  )) %>% 
+  filter(coe_program == 'Aerospace Engineering') # define the cohort
+  major_declared <- first(outcomes_duration_normalized$coe_program)
+  
+} else { # cohort study not flagged, revert to all started declared
+  major_declared = 'Declared Major'
+  }
+
+
 
 plot_isu_degree_outcome_by_coe_duration <- # get plot of ISU degree outcome performance by number of semesters spent in CoE
   outcomes_duration_normalized %>% 
@@ -590,12 +599,17 @@ plot_isu_degree_outcome_by_coe_duration <- # get plot of ISU degree outcome perf
   ungroup() %>% 
   complete(coe_duration, undeclared_start, fill = list(degree_outcome = 'Degree', count = 0, grad_prop_isu = 0)) %>% # fill in missing rows for plot
   mutate(undeclared_start = if_else(
-    (undeclared_start == 0), 'Declared Major', 'Undeclared'
+    (undeclared_start == 0), major_declared, 'Undeclared'
   )) %>% 
   ggplot(aes(x = coe_duration, y = grad_prop_isu, fill = fct_rev(undeclared_start))) +
   ylim(0,1) +
   geom_col(position = "dodge") +
-  labs (x = "Number of semesters that student spent in CoE", y = "Proportion of students earning any ISU degree", fill = "First CoE Semester") +
+  (if (cohort_outcomes_study == 0) {
+    labs(y = "Proportion of CoE students earning any ISU degree")
+  } else {
+    labs(y = glue("Proportion of {major_declared} students earning any ISU degree"))
+  })+
+  labs(x = "Number of semesters that student spent in CoE", fill = "First CoE Semester") +
   theme_minimal()
 
 isu_degree_outcomes_summary <- # summary table of population sizes to accompany plot
@@ -623,12 +637,17 @@ plot_coe_degree_outcome_by_coe_duration <- # get plot of ISU degree outcome perf
   ungroup() %>% 
   complete(coe_duration, undeclared_start, fill = list(grad_status_dataset = 'Engineering Degree', count = 0, grad_prop_coe = 0)) %>% # fill in missing rows for plot
   mutate(undeclared_start = if_else(
-    (undeclared_start == 0), 'Declared Major', 'Undeclared'
+    (undeclared_start == 0), major_declared, 'Undeclared'
   )) %>% 
   ggplot(aes(x = coe_duration, y = grad_prop_coe, fill = fct_rev(undeclared_start))) +
   ylim(0,1) +
   geom_col(position = "dodge") +
-  labs (x = "Number of semesters that student spent in CoE", y = "Proportion of students earning CoE degree", fill = "First CoE Semester") +
+  (if (cohort_outcomes_study == 0) {
+    labs(y = "Proportion of CoE students earning CoE degree")
+  } else {
+    labs(y = glue("Proportion of {major_declared} students earning {major_declared} degree"))
+  })+
+  labs (x = "Number of semesters that student spent in CoE", fill = "First CoE Semester") +
   theme_minimal()  
 
 coe_degree_outcomes_summary <- # summary table of population sizes to accompany plot
@@ -642,5 +661,5 @@ coe_degree_outcomes_summary <- # summary table of population sizes to accompany 
 
 print(plot_isu_degree_outcome_by_coe_duration + plot_coe_degree_outcome_by_coe_duration + # combine into single figure
         plot_layout(axes = "collect", guides = "collect") +
-        plot_annotation(title = "Graduation outcomes based on semesters spent in CoE"))
+        plot_annotation(title = glue("Graduation outcomes for students starting in {major_declared} based on semesters spent in CoE")))
 
