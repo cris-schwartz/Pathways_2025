@@ -569,6 +569,16 @@ outcomes_duration_normalized <- # structure data to plot results vs. number of s
 options(ggplot2.discrete.fill = c("#1f78ff", "#E69F00", "#33A02C"))
 options(ggplot2.discrete.color = c("#1f78ff", "#E69F00", "#33A02C"))
 
+# Added functionality to plot outcomes by major or other defined group
+
+cohort_outcomes_study = 1 # set the trigger to analyze by specified cohort
+if (cohort_outcomes_study == 1) { # modify the tibble by filtering if necessary
+outcomes_duration_normalized <- 
+  outcomes_duration_normalized %>%
+  mutate
+  filter()
+}
+
 plot_isu_degree_outcome_by_coe_duration <- # get plot of ISU degree outcome performance by number of semesters spent in CoE
   outcomes_duration_normalized %>% 
   group_by(coe_duration, undeclared_start, degree_outcome) %>% 
