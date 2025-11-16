@@ -572,14 +572,14 @@ options(ggplot2.discrete.color = c("#1f78ff", "#E69F00", "#33A02C"))
 
 # Added functionality to plot outcomes by major or other defined group
 
-cohort_outcomes_study = 1 # set the trigger to analyze by specified cohort
+cohort_outcomes_study = 0 # set the trigger to analyze by specified cohort
 if (cohort_outcomes_study == 1) { # modify the tibble by filtering if necessary
   outcomes_duration_normalized <- 
   outcomes_duration_normalized %>%
   mutate(coe_program = if_else( # get assigned to program if started undeclared
     (undeclared_start == 0),major_first,major_second
   )) %>% 
-  filter(coe_program == 'Aerospace Engineering') # define the cohort
+  filter(coe_program == 'Software Engineering') # define the cohort
   major_declared <- first(outcomes_duration_normalized$coe_program)
   
 } else { # cohort study not flagged, revert to all started declared
