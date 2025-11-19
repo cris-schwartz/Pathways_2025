@@ -61,6 +61,8 @@ declared_starts <- # identify those who started with a declared CoE major
   filter(undeclared_start == 0)
 
 # ANALYSIS OF STUDENTS WHO NEVER DECLARED COE MAJOR ####
+never_declared_analysis = TRUE # set a switch to run the analysis
+if (never_declared_analysis == TRUE) {
 # Comparison of never declared to started declared cohorts and outcomes
 outcome_resolved_never_declared_grouping <- 
   outcome_resolved %>% 
@@ -557,9 +559,11 @@ never_declared_duration_comparison <- # compare degree completion time with twin
   filter(degree_outcome == "Degree") %>% 
   group_by(cohort_label) %>% 
   summarize(count = n(), mean_duration = mean(degree_duration)) 
+}
 
 # STUDY OF COE DURATION AND DEGREE OUTCOME FOR UNDECLARED STARTS ####
-
+outcomes_duration_analysis = FALSE # set switch to run analysis
+if (outcomes_duration_analysis == TRUE){
 outcomes_duration_normalized <- # structure data to plot results vs. number of semesters in CoE
   outcome_resolved %>% 
   mutate(coe_duration = factor(coe_duration), undeclared_start = factor(undeclared_start),
@@ -663,3 +667,4 @@ print(plot_isu_degree_outcome_by_coe_duration + plot_coe_degree_outcome_by_coe_d
         plot_layout(axes = "collect", guides = "collect") +
         plot_annotation(title = glue("Graduation outcomes for students starting in {major_declared} based on semesters spent in CoE")))
 
+}
