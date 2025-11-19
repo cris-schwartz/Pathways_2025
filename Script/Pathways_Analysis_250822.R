@@ -692,6 +692,34 @@ if(undeclared_pathway_history_analysis == TRUE){
     slice_head() %>%  # retain only the first row of records for each student
     select(study_id,sem_2_major,sem_3_major) %>% 
     left_join(outcome_resolved_pathway,.,by = 'study_id') %>% 
-    relocate(c(sem_2_major,sem_3_major,grad_status_dataset), .after = study_id) %>%  # move to more convenient spot
-    filter(!is.na(pathway_history))
-    }
+    relocate(c(sem_2_major,sem_3_major,grad_status_dataset, pathway_history), .after = study_id) %>%  # move to more convenient spot
+    filter(!is.na(pathway_history)) %>% # select only undeclareds
+    mutate(sem_2_major = case_when( # properly assign NA's for semester 2 data
+      (is.na(sem_2_major) & (grad_status_dataset == 'No Degree')) ~ 'Departed',
+      (is.na(sem_2_major) & (grad_status_dataset == 'Non-Engineering Degree')) ~ 'Non-Engineering',
+      (!is.na(sem_2_major)) ~ sem_2_major
+    )) %>% 
+    mutate(sem_3_major = case_when( # properly assign NA's for semester 3 data
+      (is.na(sem_3_major) & (grad_status_dataset == 'No Degree')) ~ 'Departed',
+      (is.na(sem_3_major) & (grad_status_dataset == 'Non-Engineering Degree')) ~ 'Non-Engineering',
+      (!is.na(sem_3_major)) ~ sem_3_major
+    )) %>% 
+    mutate(pathway_history = str_c(pathway_history,"S2")) %>% # build the next entry in history string
+    mutate(pathway_history = case_when(
+      (str_detect(sem_2_major,' Engineering')) ~ str_c(pathway_history,"E:"),
+      (sem_2_major == 'Non-Engineering') ~ str_c(pathway_history,"N:"),
+      (sem_2_major == 'Departed') ~ str_c(pathway_history,"D:")
+    )) %>% 
+    mutate(pathway_history = str_c(pathway_history,"S3")) %>% # build the next entry in history string
+    mutate(pathway_history = case_when(
+      (str_detect(sem_3_major,' Engineering')) ~ str_c(pathway_history,"E:"),
+      (sem_3_major == 'Non-Engineering') ~ str_c(pathway_history,"N:"),
+      (sem_3_major == 'Departed') ~ str_c(pathway_history,"D:")
+    )) %>% 
+    mutate(pathway_history = str_c(pathway_history,"G")) %>% # final entry for graduation result
+    mutate(pathway_history = case_when(
+      (grad_status_dataset == 'Engineering Degree') ~ str_c(pathway_history,"E"),
+      (grad_status_dataset == 'Non-Engineering Degree') ~ str_c(pathway_history,"N"),
+      (grad_status_dataset == 'No Degree') ~ str_c(pathway_history,"D")
+    ))
+  }
