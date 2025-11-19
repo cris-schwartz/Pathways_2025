@@ -61,7 +61,7 @@ declared_starts <- # identify those who started with a declared CoE major
   filter(undeclared_start == 0)
 
 # ANALYSIS OF STUDENTS WHO NEVER DECLARED COE MAJOR ####
-never_declared_analysis = TRUE # set a switch to run the analysis
+never_declared_analysis = FALSE # set a switch to run the analysis
 if (never_declared_analysis == TRUE) {
 # Comparison of never declared to started declared cohorts and outcomes
 outcome_resolved_never_declared_grouping <- 
@@ -668,3 +668,27 @@ print(plot_isu_degree_outcome_by_coe_duration + plot_coe_degree_outcome_by_coe_d
         plot_annotation(title = glue("Graduation outcomes for students starting in {major_declared} based on semesters spent in CoE")))
 
 }
+
+# STUDY OF THE PATHWAYS HISTORY OF UNDECLARED STARTS ####
+undeclared_pathway_history_analysis = TRUE # set switch to run analysis
+if(undeclared_pathway_history_analysis == TRUE){
+  outcome_resolved_pathway <- 
+    outcome_resolved %>% 
+    mutate(pathway_history = case_when( # being building pathway string for undeclareds
+      (undeclared_start == 1) ~ "S1U:" 
+    ))
+
+  semester_records <- # import the previously prepared processed_student_dataset csv file
+    read_csv("./Data/Processed_Student_Dataset_251114.csv", guess_max = 1000) %>% # guess_max ensures empty rows not treated as logical values 
+    as_tibble()
+    
+  pathways_undeclared <- # encode full pathway history for undeclared students
+    semester_records %>%   
+    semi_join(.,filter(outcome_resolved_pathway,!is.na(pathway_history)), by = 'study_id') %>%  # select only records for undeclareds
+    arrange(study_id, sem_sequence_id) %>%  # put record in chronological order based on semester
+    group_by(study_id) %>% 
+    mutate(sem_2_major = nth(major_current,2), sem_3_major = nth(major_current,3)) %>% # capture the majors for semesters 2 and 3
+    relocate(c(sem_2_major,sem_3_major,grad_status_dataset), .after = study_id) %>% # move to more convenient spot
+    slice_head() # retain only the first row of records for each student
+    
+    }
