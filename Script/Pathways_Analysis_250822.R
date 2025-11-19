@@ -688,7 +688,10 @@ if(undeclared_pathway_history_analysis == TRUE){
     arrange(study_id, sem_sequence_id) %>%  # put record in chronological order based on semester
     group_by(study_id) %>% 
     mutate(sem_2_major = nth(major_current,2), sem_3_major = nth(major_current,3)) %>% # capture the majors for semesters 2 and 3
-    relocate(c(sem_2_major,sem_3_major,grad_status_dataset), .after = study_id) %>% # move to more convenient spot
-    slice_head() # retain only the first row of records for each student
-    
+    # relocate(c(sem_2_major,sem_3_major,grad_status_dataset), .after = study_id) %>% # move to more convenient spot
+    slice_head() %>%  # retain only the first row of records for each student
+    select(study_id,sem_2_major,sem_3_major) %>% 
+    left_join(outcome_resolved_pathway,.,by = 'study_id') %>% 
+    relocate(c(sem_2_major,sem_3_major,grad_status_dataset), .after = study_id) %>%  # move to more convenient spot
+    filter(!is.na(pathway_history))
     }
