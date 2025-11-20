@@ -14,7 +14,7 @@ library(cobalt)
 library(broom)
 library(patchwork)
 library(glue)
-# if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # install sankey package
+if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # install sankey package
 
 # LOAD AND PREPARE DATA ------------------------------------
 pathway_summary <- # import the previously prepared pathway_summary csv file
@@ -312,10 +312,6 @@ psm_m <-
 form_ps <- as.formula(paste("never_declared_flag ~", paste (covars, collapse = " + ")))
 
 ps_mod <- glm(form_ps, data = psm_m, family = binomial())
-
-# psm_m <- 
-#   psm_m %>% 
-#   mutate(ps = predict(ps_mod, type = "response"), ps_logit = qlogis(ps))
 
 ps_vec <- predict(ps_mod, type = "response")
 ps_logit_vec <- qlogis(ps_vec)
