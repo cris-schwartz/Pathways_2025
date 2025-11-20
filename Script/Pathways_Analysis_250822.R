@@ -14,6 +14,10 @@ library(cobalt)
 library(broom)
 library(patchwork)
 library(glue)
+library(ggalluvial)
+# library(igraph)
+library(tidygraph)
+library(ggraph)
 if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # install sankey package
 
 # LOAD AND PREPARE DATA ------------------------------------
@@ -717,5 +721,48 @@ if(undeclared_pathway_history_analysis == TRUE){
       (grad_status_dataset == 'Engineering Degree') ~ str_c(pathway_history,"E"),
       (grad_status_dataset == 'Non-Engineering Degree') ~ str_c(pathway_history,"N"),
       (grad_status_dataset == 'No Degree') ~ str_c(pathway_history,"D")
-    ))
+    )) 
+    
+  
+  tree_test <- 
+    pathways_undeclared %>% 
+    mutate(sem_2_major = if_else( # group all CoE majors together for sankey plot
+      (str_detect(sem_2_major,' Engineering')),'Engineering', sem_2_major
+    )) %>% 
+    mutate(sem_3_major = if_else( # group all CoE majors together for sankey plot
+      (str_detect(sem_3_major,' Engineering')),'Engineering', sem_3_major
+    )) %>% 
+    separate(col = pathway_history, into = c("step1", "step2", "step3", "step4"), sep = ":") %>% # prep for network visualization
+    pivot_longer(cols = starts_with("step"), names_to = "step_index", values_to = "state") %>%  # rows by student-semester
+    arrange(study_id, step_index) %>% 
+    group_by(study_id) %>% 
+    mutate(next_state = lead(state), # record info on next state for each student-semester
+           next_step = lead(step_index)) %>% 
+    ungroup() %>% 
+    filter(!is.na(next_state)) %>% # remove ends of record for each student
+    relocate(last_col(3):last_col(), .after = study_id) # make tibble easier to examine visually
+
+  edge_counts <- # determine the network edge weights (aka number of students on each leg of pathway)
+    tree_test %>% 
+    count(state, next_state, name = "n_students")
+  
+  edges_graph <- 
+    edge_counts %>% 
+    rename(from = state, to = next_state)
+ 
+  tree_graph <- tbl_graph( # build a tidygraph object manually using edge_graph df
+    nodes = NULL,
+    edges = edges_graph,
+    directed = TRUE
+    ) %>% 
+    activate(nodes) %>% 
+    mutate(state = name)
+  
+  final_tree_graph <- 
+    tree_graph %>% 
+    ggraph(layout = "tree") +
+    geom_edge_diagonal(aes(width = n_students), alpha = 0.6, lineend = "round") +
+    geom_node_label(aes(label = state)) +
+    scale_edge_width (range = c(0.3, 5)) +
+    coord_flip()
   }
