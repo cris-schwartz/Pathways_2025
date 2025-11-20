@@ -689,10 +689,11 @@ if(undeclared_pathway_history_analysis == TRUE){
     group_by(study_id) %>% 
     mutate(sem_2_major = nth(major_current,2), sem_3_major = nth(major_current,3)) %>% # capture the majors for semesters 2 and 3
     # relocate(c(sem_2_major,sem_3_major,grad_status_dataset), .after = study_id) %>% # move to more convenient spot
+    mutate(grad_outcome = grad_status_dataset) %>%   # duplicate row to make it easier to work with visualizations
     slice_head() %>%  # retain only the first row of records for each student
-    select(study_id,sem_2_major,sem_3_major) %>% 
+    select(study_id,sem_2_major,sem_3_major,grad_outcome) %>% 
     left_join(outcome_resolved_pathway,.,by = 'study_id') %>% 
-    relocate(c(sem_2_major,sem_3_major,grad_status_dataset, pathway_history), .after = study_id) %>%  # move to more convenient spot
+    relocate(c(sem_2_major,sem_3_major,grad_outcome, pathway_history), .after = study_id) %>%  # move to more convenient spot
     filter(!is.na(pathway_history)) %>% # select only undeclareds
     mutate(sem_2_major = case_when( # properly assign NA's for semester 2 data
       (is.na(sem_2_major) & (grad_status_dataset == 'No Degree')) ~ 'Departed',
@@ -703,15 +704,17 @@ if(undeclared_pathway_history_analysis == TRUE){
       (is.na(sem_3_major) & (grad_status_dataset == 'No Degree')) ~ 'Departed',
       (is.na(sem_3_major) & (grad_status_dataset == 'Non-Engineering Degree')) ~ 'Non-Engineering',
       (!is.na(sem_3_major)) ~ sem_3_major
-    )) %>% 
+    )) %>%   
     mutate(pathway_history = str_c(pathway_history,"S2")) %>% # build the next entry in history string
     mutate(pathway_history = case_when(
+      (sem_2_major == "Undeclared Engineering") ~ str_c(pathway_history,"U:"),
       (str_detect(sem_2_major,' Engineering')) ~ str_c(pathway_history,"E:"),
       (sem_2_major == 'Non-Engineering') ~ str_c(pathway_history,"N:"),
       (sem_2_major == 'Departed') ~ str_c(pathway_history,"D:")
     )) %>% 
     mutate(pathway_history = str_c(pathway_history,"S3")) %>% # build the next entry in history string
     mutate(pathway_history = case_when(
+      (sem_3_major == "Undeclared Engineering") ~ str_c(pathway_history,"U:"),
       (str_detect(sem_3_major,' Engineering')) ~ str_c(pathway_history,"E:"),
       (sem_3_major == 'Non-Engineering') ~ str_c(pathway_history,"N:"),
       (sem_3_major == 'Departed') ~ str_c(pathway_history,"D:")
@@ -721,19 +724,25 @@ if(undeclared_pathway_history_analysis == TRUE){
       (grad_status_dataset == 'Engineering Degree') ~ str_c(pathway_history,"E"),
       (grad_status_dataset == 'Non-Engineering Degree') ~ str_c(pathway_history,"N"),
       (grad_status_dataset == 'No Degree') ~ str_c(pathway_history,"D")
-    )) 
+    )) %>% 
+    mutate(sem_3_major = if_else(
+     (sem_2_major == 'Departed'),NA,sem_3_major 
+    )) %>% 
+    mutate(grad_outcome = if_else(
+      (sem_3_major == 'Departed' | is.na(sem_3_major)), NA, grad_outcome
+    ))
     
   
   tree_test <- 
     pathways_undeclared %>% 
-    mutate(sem_2_major = if_else( # group all CoE majors together for sankey plot
-      (str_detect(sem_2_major,' Engineering')),'Engineering', sem_2_major
-    )) %>% 
-    mutate(sem_3_major = if_else( # group all CoE majors together for sankey plot
-      (str_detect(sem_3_major,' Engineering')),'Engineering', sem_3_major
-    )) %>% 
-    separate(col = pathway_history, into = c("step1", "step2", "step3", "step4"), sep = ":") %>% # prep for network visualization
-    pivot_longer(cols = starts_with("step"), names_to = "step_index", values_to = "state") %>%  # rows by student-semester
+    separate(col = pathway_history, into = c("step1", "step2", "step3", "step4"), sep = ":") %>%   # prep for network visualization
+    mutate(step3 = if_else(
+      (str_detect(step2,'D')),NA,step3)
+    ) %>% 
+    mutate(step4 = if_else(
+      (str_detect(step3,'D') | is.na(step3)),NA,step4)
+    ) %>% 
+    pivot_longer(cols = starts_with("step"), names_to = "step_index", values_to = "state") %>%    # rows by student-semester
     arrange(study_id, step_index) %>% 
     group_by(study_id) %>% 
     mutate(next_state = lead(state), # record info on next state for each student-semester
@@ -761,8 +770,10 @@ if(undeclared_pathway_history_analysis == TRUE){
   final_tree_graph <- 
     tree_graph %>% 
     ggraph(layout = "tree") +
-    geom_edge_diagonal(aes(width = n_students), alpha = 0.6, lineend = "round") +
+    geom_edge_diagonal(aes(width = n_students), alpha = 1, lineend = "round") +
     geom_node_label(aes(label = state)) +
-    scale_edge_width (range = c(0.3, 5)) +
+    scale_edge_width (range = c(0.3, 4)) +
+    # coord_flip() +
+    scale_x_reverse() +
     coord_flip()
   }
