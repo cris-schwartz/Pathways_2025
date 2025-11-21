@@ -791,7 +791,10 @@ if(undeclared_pathway_history_analysis == TRUE){
 
   tree_edge_counts <- # determine the network edge weights (aka number of students on each leg of pathway)
     tree_structure_pathways_undeclared %>% 
-    count(state, next_state, name = "n_students")
+    group_by(state, next_state) %>% 
+    summarize(n_students = n(), gpa = max(first_sem_gpa)) # FIGURE OUT WHY GETTING NA'S HERE
+    
+  # count(state, next_state, name = "n_students") %>% 
   
   tree_edges_graph <- 
     tree_edge_counts %>% 
@@ -808,9 +811,11 @@ if(undeclared_pathway_history_analysis == TRUE){
   plot_tree_graph_pathways_undeclared <- 
     tree_graph_pathways_undeclared %>% 
     ggraph(layout = "tree") +
-    geom_edge_diagonal(aes(width = n_students), alpha = 1, lineend = "round") +
+    geom_edge_diagonal(aes(edge_width = n_students, edge_colour = gpa), alpha = 1, lineend = "round") +
     geom_node_label(aes(label = state)) +
     scale_edge_width (range = c(0.3, 4)) +
     coord_flip() +
     scale_y_reverse() 
+  
+  print(plot_tree_graph_pathways_undeclared)
   }
