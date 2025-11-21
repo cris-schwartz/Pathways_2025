@@ -688,7 +688,6 @@ if(undeclared_pathway_history_analysis == TRUE){
     arrange(study_id, sem_sequence_id) %>%  # put record in chronological order based on semester
     group_by(study_id) %>% 
     mutate(sem_2_major = nth(major_current,2), sem_3_major = nth(major_current,3)) %>% # capture the majors for semesters 2 and 3
-    # relocate(c(sem_2_major,sem_3_major,grad_status_dataset), .after = study_id) %>% # move to more convenient spot
     mutate(grad_outcome = grad_status_dataset) %>%   # duplicate row to make it easier to work with visualizations
     slice_head() %>%  # retain only the first row of records for each student
     select(study_id,sem_2_major,sem_3_major,grad_outcome) %>% 
@@ -731,17 +730,56 @@ if(undeclared_pathway_history_analysis == TRUE){
     mutate(grad_outcome = if_else(
       (sem_3_major == 'Departed' | is.na(sem_3_major)), NA, grad_outcome
     ))
-    
-  
-  tree_test <- 
+
+  tree_structure_pathways_undeclared <- 
     pathways_undeclared %>% 
     separate(col = pathway_history, into = c("step1", "step2", "step3", "step4"), sep = ":") %>%   # prep for network visualization
+    mutate(step2 = str_c(step1, step2, sep = ":")) %>% 
+    mutate(step3 = str_c(step2, step3, sep = ":")) %>% 
+    mutate(step4 = str_c(step3, step4, sep = ":")) %>%
     mutate(step3 = if_else(
       (str_detect(step2,'D')),NA,step3)
     ) %>% 
     mutate(step4 = if_else(
       (str_detect(step3,'D') | is.na(step3)),NA,step4)
     ) %>% 
+
+    mutate(step1 = "Started Undeclared") %>%
+    mutate(step2 = case_when(
+      (step2 == 'S1U:S2U') ~ 'Stayed Undeclared',
+      (step2 == 'S1U:S2N') ~ 'Left CoE, earned ISU degree',
+      (step2 == 'S1U:S2E') ~ 'Declared CoE major',
+      (step2 == 'S1U:S2D') ~ 'Left ISU'
+    )) %>%
+    mutate(step3 = case_when(
+      (step3 == 'S1U:S2U:S3U') ~ 'S3 Stayed Undeclared',
+      (step3 == 'S1U:S2U:S3N') ~ 'S3 Declared non-CoE major',
+      (step3 == 'S1U:S2U:S3E') ~ 'S3 Declared CoE major',
+      (step3 == 'S1U:S2U:S3D') ~ 'S3 Never Declared, Left ISU',
+      (step3 == 'S1U:S2N:S3N') ~ 'S3 Still in non-CoE major',
+      (step3 == 'S1U:S2E:S3U') ~ 'S3 Back to Undeclared',
+      (step3 == 'S1U:S2E:S3E') ~ 'S3 Still in CoE major',
+      (step3 == 'S1U:S2E:S3D') ~ 'S3 Declared, Left ISU',
+      (step3 == 'S1U:S2E:S3N') ~ 'S3 Left CoE for non-CoE major'
+    )) %>%
+    mutate(step4 = case_when(
+      (step4 == 'S1U:S2E:S3E:GE') ~ 'CoE Degree',
+      (step4 == 'S1U:S2E:S3E:GD') ~ 'No CoE Degree, Left ISU',
+      (step4 == 'S1U:S2E:S3N:GN') ~ 'Left CoE, got non-CoE Degree',
+      (step4 == 'S1U:S2U:S3E:GD') ~ 'Declared CoE but Left ISU',
+      (step4 == 'S1U:S2U:S3E:GE') ~ 'Declared and got CoE Degree',
+      (step4 == 'S1U:S2U:S3D:GD') ~ 'Sem3 Left ISU',
+      (step4 == 'S1U:S2D:S3D:GD') ~ 'Sem2 Left ISU',
+      (step4 == 'S1U:S2U:S3U:GD') ~ 'Never Declared, Left ISU S3',
+      (step4 == 'S1U:S2E:S3E:GN') ~ 'Left CoE and got non-CoE Degree',
+      (step4 == 'S1U:S2N:S3N:GN') ~ 'Never Declared, got non-CoE Degree',
+      (step4 == 'S1U:S2E:S3D:GD') ~ 'Declared in S2, Left ISU',
+      (step4 == 'S1U:S2U:S3E:GN') ~ 'Declared CoE major in S3 and got non-CoE Degree',
+      (step4 == 'S1U:S2U:S3U:GE') ~ 'Declared after S3, got CoE Degree',
+      (step4 == 'S1U:S2E:S3U:GD') ~ 'Returned to Undeclared, Left ISU',
+      (step4 == 'S1U:S2U:S3N:GN') ~ 'Left CoE in S3 and got non-CoE Degree',
+      (step4 == 'S1U:S2U:S3U:GN') ~ 'Never Declared thru S3, got non-CoE Degree'
+    )) %>%
     pivot_longer(cols = starts_with("step"), names_to = "step_index", values_to = "state") %>%    # rows by student-semester
     arrange(study_id, step_index) %>% 
     group_by(study_id) %>% 
@@ -749,31 +787,30 @@ if(undeclared_pathway_history_analysis == TRUE){
            next_step = lead(step_index)) %>% 
     ungroup() %>% 
     filter(!is.na(next_state)) %>% # remove ends of record for each student
-    relocate(last_col(3):last_col(), .after = study_id) # make tibble easier to examine visually
+    relocate(last_col(3):last_col(), .after = study_id)  # make tibble easier to examine visually
 
-  edge_counts <- # determine the network edge weights (aka number of students on each leg of pathway)
-    tree_test %>% 
+  tree_edge_counts <- # determine the network edge weights (aka number of students on each leg of pathway)
+    tree_structure_pathways_undeclared %>% 
     count(state, next_state, name = "n_students")
   
-  edges_graph <- 
-    edge_counts %>% 
+  tree_edges_graph <- 
+    tree_edge_counts %>% 
     rename(from = state, to = next_state)
  
-  tree_graph <- tbl_graph( # build a tidygraph object manually using edge_graph df
+  tree_graph_pathways_undeclared <- tbl_graph( # build a tidygraph object manually using edge_graph df
     nodes = NULL,
-    edges = edges_graph,
+    edges = tree_edges_graph,
     directed = TRUE
     ) %>% 
     activate(nodes) %>% 
     mutate(state = name)
   
-  final_tree_graph <- 
-    tree_graph %>% 
+  plot_tree_graph_pathways_undeclared <- 
+    tree_graph_pathways_undeclared %>% 
     ggraph(layout = "tree") +
     geom_edge_diagonal(aes(width = n_students), alpha = 1, lineend = "round") +
     geom_node_label(aes(label = state)) +
     scale_edge_width (range = c(0.3, 4)) +
-    # coord_flip() +
-    scale_x_reverse() +
-    coord_flip()
+    coord_flip() +
+    scale_y_reverse() 
   }
