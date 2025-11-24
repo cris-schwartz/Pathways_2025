@@ -17,7 +17,8 @@ library(glue)
 library(ggalluvial)
 library(tidygraph)
 library(ggraph)
-# if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # install sankey package
+if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # install sankey package
+library(ggsankey)
 
 # LOAD AND PREPARE DATA ------------------------------------
 pathway_summary <- # import the previously prepared pathway_summary csv file
@@ -805,8 +806,8 @@ if(undeclared_pathway_history_analysis == TRUE){
     activate(nodes) %>% # select the nodes df to manipulate
     mutate(state = name) # change the column name
 
-  plot_tree_graph_pathways_undeclared <- 
-    tree_graph_pathways_undeclared %>% 
+  plot_tree_graph_pathways_undeclared <-
+    tree_graph_pathways_undeclared %>%
     ggraph(layout = "tree") + # tree diagram (igraph layout, not same as ggraph 'treemap' layout)
     geom_edge_diagonal(aes(edge_width = n_students, edge_colour = first_gpa), alpha = 1, lineend = "butt") + # define graph edges
     scale_edge_color_gradient(name = "mean first semester GPA", low = "red", high = "darkgreen", trans = "exp") + # better colors
@@ -818,7 +819,88 @@ if(undeclared_pathway_history_analysis == TRUE){
     theme(legend.position = "top") + # move legend
     labs(title = "Pathways of CoE Students who Started Undeclared 2015 - 2024") + # add plot title
     theme(plot.margin = margin(20, 80, 20, 80, "pt")) # pad the margins so that node labels not clipped when plotted
-   
+
+
+  # print(plot_tree_graph_pathways_undeclared)
   
-  print(plot_tree_graph_pathways_undeclared)
+  sankey_structure_pathways_undeclared <- # duplicate the tree layout using a Sankey
+    pathways_undeclared %>% 
+    separate(col = pathway_history, into = c("step1", "step2", "step3", "step4"), sep = ":") %>%   # prep for network visualization
+    mutate(step2 = str_c(step1, step2, sep = ":")) %>% 
+    mutate(step3 = str_c(step2, step3, sep = ":")) %>% 
+    mutate(step4 = str_c(step3, step4, sep = ":")) %>%
+    mutate(step3 = if_else(
+      (str_detect(step2,'D')),NA,step3)
+    ) %>% 
+    mutate(step4 = if_else(
+      (str_detect(step3,'D') | is.na(step3)),NA,step4)
+    ) %>% 
+    mutate(step1 = "Started Undeclared") %>%
+    mutate(step2 = case_when(
+      (step2 == 'S1U:S2U') ~ 'Remained Undeclared',
+      (step2 == 'S1U:S2N') ~ 'Left CoE, earned ISU degree',
+      (step2 == 'S1U:S2E') ~ 'Declared CoE major',
+      (step2 == 'S1U:S2D') ~ 'z_Left ISU'
+    )) %>%
+    mutate(step3 = case_when(
+      (step3 == 'S1U:S2U:S3U') ~ 'Remained Undeclared',
+      (step3 == 'S1U:S2U:S3N') ~ 'Declared non-CoE major',
+      (step3 == 'S1U:S2U:S3E') ~ 'Declared CoE major',
+      (step3 == 'S1U:S2U:S3D') ~ 'Left ISU',
+      (step3 == 'S1U:S2N:S3N') ~ 'Continued non-CoE major',
+      (step3 == 'S1U:S2E:S3U') ~ 'Back to Undeclared',
+      (step3 == 'S1U:S2E:S3E') ~ 'Remained in CoE major',
+      (step3 == 'S1U:S2E:S3D') ~ 'Declared, Left ISU',
+      (step3 == 'S1U:S2E:S3N') ~ 'Declared non-CoE major'
+    )) %>%
+    mutate(step4 = case_when(
+      (step4 == 'S1U:S2E:S3E:GE') ~ 'CoE Degree',
+      (step4 == 'S1U:S2E:S3E:GD') ~ 'Left ISU',
+      (step4 == 'S1U:S2E:S3N:GN') ~ 'non-CoE Degree',
+      (step4 == 'S1U:S2U:S3E:GD') ~ 'Left ISU',
+      (step4 == 'S1U:S2U:S3E:GE') ~ 'CoE Degree',
+      (step4 == 'S1U:S2U:S3D:GD') ~ 'Left ISU',
+      (step4 == 'S1U:S2D:S3D:GD') ~ 'Left ISU',
+      (step4 == 'S1U:S2U:S3U:GD') ~ 'Left ISU',
+      (step4 == 'S1U:S2E:S3E:GN') ~ 'non-CoE Degree',
+      (step4 == 'S1U:S2N:S3N:GN') ~ 'non-CoE Degree',
+      (step4 == 'S1U:S2E:S3D:GD') ~ 'Left ISU',
+      (step4 == 'S1U:S2U:S3E:GN') ~ 'non-CoE Degree',
+      (step4 == 'S1U:S2U:S3U:GE') ~ 'CoE Degree',
+      (step4 == 'S1U:S2E:S3U:GD') ~ 'Left ISU',
+      (step4 == 'S1U:S2U:S3N:GN') ~ 'non-CoE Degree',
+      (step4 == 'S1U:S2U:S3U:GN') ~ 'non-CoE Degree'
+    ))
+  
+  sankey_long_format <- # convert to ggsankey format using make_long
+    sankey_structure_pathways_undeclared %>%
+    make_long(step1, step2, step3, step4) %>% 
+    filter(!is.na(node), node !="")  # get rid of all NA nodes due to those who do not have all four steps
+
+  plot_sankey_pathways_undeclared <-
+    sankey_long_format %>% 
+    ggplot(aes(x = x, next_x = next_x, node = node, next_node = next_node, fill = factor(node))) +
+    geom_sankey(flow.alpha = .8, node.color = 'gray90', show.legend = FALSE) +
+    geom_sankey_label(aes(label = node), size = 3, color = 'black', fill = 'gray90') +
+    theme_minimal() +
+    theme(legend.position = 'none') +
+    theme(axis.text.y = element_blank(),
+          axis.ticks = element_blank(),  
+          panel.grid = element_blank()) +
+    scale_x_discrete(labels = c("first semester","second","third","final outcome")) +
+    labs(x = "Semester of Study at ISU (based on semester when began in Engineering Undeclared")
+
+    
+  
+  print(plot_sankey_pathways_undeclared)
+  
+  
+  #   pivot_longer(cols = starts_with("step"), names_to = "step_index", values_to = "state") %>%    # rows by student-semester
+  #   arrange(study_id, step_index) %>% 
+  #   group_by(study_id) %>% 
+  #   mutate(next_state = lead(state), # record info on next state for each student-semester
+  #          next_step = lead(step_index)) %>% 
+  #   ungroup() %>% 
+  #   filter(!is.na(next_state)) %>% # remove ends of record for each student
+  #   relocate(last_col(3):last_col(), .after = study_id)  # make tibble easier to examine visually
   }
