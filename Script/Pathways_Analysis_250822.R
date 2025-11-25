@@ -744,23 +744,23 @@ if(undeclared_pathway_history_analysis == TRUE){
       (str_detect(step3,'D') | is.na(step3)),NA,step4)
     ) %>% 
 
-    mutate(step1 = "S1 Started Undeclared") %>%
+    mutate(step1 = "Started Undeclared") %>%
     mutate(step2 = case_when(
-      (step2 == 'S1U:S2U') ~ '2 Stayed Undeclared',
-      (step2 == 'S1U:S2N') ~ '2 Left CoE, earned ISU degree',
-      (step2 == 'S1U:S2E') ~ '2 Declared CoE major',
-      (step2 == 'S1U:S2D') ~ '2 Left ISU'
+      (step2 == 'S1U:S2U') ~ 'Stayed Undeclared (S2)',
+      (step2 == 'S1U:S2N') ~ 'Left CoE, earned ISU degree (S2)',
+      (step2 == 'S1U:S2E') ~ 'Declared CoE major (S2)',
+      (step2 == 'S1U:S2D') ~ 'Left ISU (S2)'
     )) %>%
     mutate(step3 = case_when(
-      (step3 == 'S1U:S2U:S3U') ~ '3 Stayed Undeclared',
-      (step3 == 'S1U:S2U:S3N') ~ '3 Declared non-CoE major',
-      (step3 == 'S1U:S2U:S3E') ~ '3 Declared CoE major',
-      (step3 == 'S1U:S2U:S3D') ~ '3 Left ISU',
-      (step3 == 'S1U:S2N:S3N') ~ '3 Still in non-CoE major',
-      (step3 == 'S1U:S2E:S3U') ~ '3 Back to Undeclared',
-      (step3 == 'S1U:S2E:S3E') ~ '3 Still in CoE major',
-      (step3 == 'S1U:S2E:S3D') ~ '3 Declared, Left ISU',
-      (step3 == 'S1U:S2E:S3N') ~ '3 Left for non-CoE major'
+      (step3 == 'S1U:S2U:S3U') ~ 'Stayed Undeclared (S3)',
+      (step3 == 'S1U:S2U:S3N') ~ 'Declared non-CoE major (S3)',
+      (step3 == 'S1U:S2U:S3E') ~ 'Declared CoE major (S3)',
+      (step3 == 'S1U:S2U:S3D') ~ 'Left ISU (S3)',
+      (step3 == 'S1U:S2N:S3N') ~ 'Still in non-CoE major (S3)',
+      (step3 == 'S1U:S2E:S3U') ~ 'Back to Undeclared (S3)',
+      (step3 == 'S1U:S2E:S3E') ~ 'Still in CoE major (S3)',
+      (step3 == 'S1U:S2E:S3D') ~ 'Declared, Left ISU (S3)',
+      (step3 == 'S1U:S2E:S3N') ~ 'Left for non-CoE major (S3)'
     )) %>%
     mutate(step4 = case_when(
       (step4 == 'S1U:S2E:S3E:GE') ~ 'CoE Degree*',
@@ -809,19 +809,22 @@ if(undeclared_pathway_history_analysis == TRUE){
   plot_tree_graph_pathways_undeclared <-
     tree_graph_pathways_undeclared %>%
     ggraph(layout = "tree") + # tree diagram (igraph layout, not same as ggraph 'treemap' layout)
-    geom_edge_diagonal(aes(edge_width = n_students, edge_colour = first_gpa), alpha = 1, lineend = "butt") + # define graph edges
+    geom_edge_diagonal(aes(edge_width = n_students, edge_colour = first_gpa), alpha = 1, lineend = "round",
+                       linejoin = "round", strength = 0.5) + # define graph edges
     scale_edge_color_gradient(name = "mean first semester GPA", low = "red", high = "darkgreen", trans = "exp") + # better colors
-    geom_node_label(aes(label = str_wrap(state, width = 15)), size = 5, fill = "white") + # format node labels
+    geom_node_label(aes(label = str_wrap(state, width = 20)), size = 5, fill = "white") + # format node labels
     scale_edge_width (range = c(0.5, 30), guide = "none") + # edge size scale and turn off legend for edge width
     coord_flip(clip = "off") + # swap to horizontal layout and make room so labels are not clipped when plotted
     scale_y_reverse() + # flip horizontally to get root on the left
     theme_void() + # turn off background
-    theme(legend.position = "top") + # move legend
+    theme(legend.position = "top", 
+          axis.title.x = element_text()) + # move legend
     labs(title = "Pathways of CoE Students who Started Undeclared 2015 - 2024") + # add plot title
+    labs(y = "Progression by semester of study at ISU (first semester is when student entered Engineering Undeclared)") +
     theme(plot.margin = margin(20, 80, 20, 80, "pt")) # pad the margins so that node labels not clipped when plotted
 
 
-  # print(plot_tree_graph_pathways_undeclared)
+  print(plot_tree_graph_pathways_undeclared)
   
   sankey_structure_pathways_undeclared <- # duplicate the tree layout using a Sankey
     pathways_undeclared %>% 
@@ -911,17 +914,7 @@ if(undeclared_pathway_history_analysis == TRUE){
     scale_x_discrete(labels = c("first semester","second","third","final outcome")) +
     labs(x = "Semester of Study at ISU (based on semester when began in Engineering Undeclared)")
 
-    
   
-  print(plot_sankey_pathways_undeclared)
+  # print(plot_sankey_pathways_undeclared)
   
-  
-  #   pivot_longer(cols = starts_with("step"), names_to = "step_index", values_to = "state") %>%    # rows by student-semester
-  #   arrange(study_id, step_index) %>% 
-  #   group_by(study_id) %>% 
-  #   mutate(next_state = lead(state), # record info on next state for each student-semester
-  #          next_step = lead(step_index)) %>% 
-  #   ungroup() %>% 
-  #   filter(!is.na(next_state)) %>% # remove ends of record for each student
-  #   relocate(last_col(3):last_col(), .after = study_id)  # make tibble easier to examine visually
   }
