@@ -729,7 +729,8 @@ if(undeclared_pathway_history_analysis == TRUE){
     )) %>% 
     mutate(grad_outcome = if_else(
       (sem_3_major == 'Departed' | is.na(sem_3_major)), NA, grad_outcome
-    ))
+    )) %>% 
+    mutate(gpa_change = first_sem_gpa - final_coe_gpa) # add metric to show GPA change from start to leaving CoE
 
   tree_structure_pathways_undeclared <- 
     pathways_undeclared %>% 
@@ -792,7 +793,8 @@ if(undeclared_pathway_history_analysis == TRUE){
   tree_edge_counts <- # determine the network edge weights (aka number of students on each leg of pathway)
     tree_structure_pathways_undeclared %>% 
     group_by(state, next_state) %>% 
-    summarize(n_students = n(), first_gpa = mean(first_sem_gpa, na.rm = TRUE)) # count graph edge weights and mapping factor gpa
+    summarize(n_students = n(), first_gpa = mean(first_sem_gpa, na.rm = TRUE),
+              gpa_change = mean(gpa_change, na.rm = TRUE)) # count graph edge weights and mapping factor gpa
     
   tree_edges_graph <- # need to change name of colums to prepare for creation of tidygraph object
     tree_edge_counts %>% 
@@ -806,7 +808,7 @@ if(undeclared_pathway_history_analysis == TRUE){
     activate(nodes) %>% # select the nodes df to manipulate
     mutate(state = name) # change the column name
 
-  plot_tree_graph_pathways_undeclared <-
+  plot_tree_graph_pathways_undeclared_first_sem_gpa <- # plot pathways by first semester GPA
     tree_graph_pathways_undeclared %>%
     ggraph(layout = "tree") + # tree diagram (igraph layout, not same as ggraph 'treemap' layout)
     geom_edge_diagonal(aes(edge_width = n_students, edge_colour = first_gpa), alpha = 1, lineend = "round",
@@ -823,8 +825,37 @@ if(undeclared_pathway_history_analysis == TRUE){
     labs(y = "Progression by semester of study at ISU (first semester is when student entered Engineering Undeclared)") +
     theme(plot.margin = margin(20, 80, 20, 80, "pt")) # pad the margins so that node labels not clipped when plotted
 
+  # print(plot_tree_graph_pathways_undeclared_first_sem_gpa)
+  
+  plot_tree_graph_pathways_undeclared_gpa_change <- # plot pathways by evolution of GPA
+    tree_graph_pathways_undeclared %>%
+    ggraph(layout = "tree") + # tree diagram (igraph layout, not same as ggraph 'treemap' layout)
+    geom_edge_diagonal(aes(edge_width = n_students, edge_colour = gpa_change), alpha = 1, lineend = "round",
+                       linejoin = "round", strength = 0.5) + # define graph edges
+    scale_edge_colour_gradient2( # visualize improvement vs degradation of GPA
+      name      = "Change in GPA from start to CoE departure",
+      low       = "red",       # negative
+      mid       = "gray90",     # zero
+      high      = "darkgreen", # positive
+      midpoint  = 0,           # where 0 lies on the scale
+      limits    = c(-0.55, 0.55) # force full range to show
+    ) +
+      geom_node_label(aes(label = str_wrap(state, width = 20)), size = 5, fill = "white") + # format node labels
+    scale_edge_width (range = c(0.5, 30), guide = "none") + # edge size scale and turn off legend for edge width
+    coord_flip(clip = "off") + # swap to horizontal layout and make room so labels are not clipped when plotted
+    scale_y_reverse() + # flip horizontally to get root on the left
+    theme_void() + # turn off background
+    theme(legend.position = "top", 
+          axis.title.x = element_text()) + # move legend
+    labs(title = "Pathways of CoE Students who Started Undeclared 2015 - 2024") + # add plot title
+    labs(y = "Progression by semester of study at ISU (first semester is when student entered Engineering Undeclared)") +
+    theme(plot.margin = margin(20, 80, 20, 80, "pt")) # pad the margins so that node labels not clipped when plotted
+  
+  print(plot_tree_graph_pathways_undeclared_gpa_change)
 
-  print(plot_tree_graph_pathways_undeclared)
+  # print(plot_tree_graph_pathways_undeclared_first_sem_gpa / plot_tree_graph_pathways_undeclared_gpa_change + # combine into single figure
+  #         plot_layout(axes = "collect", guides = "collect") +
+  #         plot_annotation(title = "Pathways of CoE Students who Started Undeclared 2015 - 2024"))
   
   sankey_structure_pathways_undeclared <- # duplicate the tree layout using a Sankey
     pathways_undeclared %>% 
