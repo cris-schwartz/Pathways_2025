@@ -892,17 +892,16 @@ if(undeclared_pathway_history_analysis == TRUE){
     sankey_structure_pathways_undeclared %>%
     make_long(step1, step2, step3, step4, value = cohort_first_gpa) %>% # reformat and keep the desired mapping fill paramter
     filter(!is.na(node), node !="") %>%   # get rid of all NA nodes due to those who do not have all four steps
-    rename(mean_first_gpa = value)   # rename the column so no information is lost
-    # mutate(mean_first_gpa = 5) # EXPERIMENT
-  
-  sankey_pal <- colorRampPalette(c("yellow","darkgreen"))
-  sankey_cols <- sankey_pal(nlevels(factor(sankey_long_format$node)))
+    rename(mean_first_gpa = value)  # rename the column so no information is lost
+ 
+  # sankey_pal <- colorRampPalette(c("yellow","darkgreen"))
+  # sankey_cols <- sankey_pal(nlevels(factor(sankey_long_format$node)))
     
   plot_sankey_pathways_undeclared <-
     sankey_long_format %>% 
-    ggplot(aes(x = x, next_x = next_x, node = node, next_node = next_node)) +
-    geom_sankey(aes(fill = factor(node)),flow.alpha = .8, node.color = 'gray90', show.legend = FALSE) +
-    scale_fill_manual(values = sankey_cols) +
+    ggplot(aes(x = x, next_x = next_x, node = node, next_node = next_node, fill = factor(node))) +
+    geom_sankey(flow.alpha = .8, node.color = 'gray90', show.legend = FALSE) +
+    # scale_fill_manual(values = sankey_cols) +
     geom_sankey_label(aes(label = node), size = 3, color = 'black', fill = 'gray90') +
     theme_minimal() +
     theme(legend.position = 'none') +
@@ -910,7 +909,7 @@ if(undeclared_pathway_history_analysis == TRUE){
           axis.ticks = element_blank(),  
           panel.grid = element_blank()) +
     scale_x_discrete(labels = c("first semester","second","third","final outcome")) +
-    labs(x = "Semester of Study at ISU (based on semester when began in Engineering Undeclared")
+    labs(x = "Semester of Study at ISU (based on semester when began in Engineering Undeclared)")
 
     
   
