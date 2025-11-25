@@ -732,7 +732,7 @@ if(undeclared_pathway_history_analysis == TRUE){
     )) %>% 
     mutate(gpa_change = first_sem_gpa - final_coe_gpa) # add metric to show GPA change from start to leaving CoE
 
-  tree_structure_pathways_undeclared <- 
+  pathways_undeclared_steps <- # process the pathways to individual steps for later restructuring
     pathways_undeclared %>% 
     separate(col = pathway_history, into = c("step1", "step2", "step3", "step4"), sep = ":") %>%   # prep for network visualization
     mutate(step2 = str_c(step1, step2, sep = ":")) %>% 
@@ -744,7 +744,6 @@ if(undeclared_pathway_history_analysis == TRUE){
     mutate(step4 = if_else(
       (str_detect(step3,'D') | is.na(step3)),NA,step4)
     ) %>% 
-
     mutate(step1 = "Started Undeclared") %>%
     mutate(step2 = case_when(
       (step2 == 'S1U:S2U') ~ 'Stayed Undeclared (S2)',
@@ -780,7 +779,10 @@ if(undeclared_pathway_history_analysis == TRUE){
       (step4 == 'S1U:S2E:S3U:GD') ~ 'Left ISU ,',
       (step4 == 'S1U:S2U:S3N:GN') ~ 'non-CoE Degree.',
       (step4 == 'S1U:S2U:S3U:GN') ~ 'non-CoE Degree .'
-    )) %>%
+    )) 
+
+  tree_structure_pathways_undeclared <- 
+    pathways_undeclared_steps %>% 
     pivot_longer(cols = starts_with("step"), names_to = "step_index", values_to = "state") %>%    # rows by student-semester
     arrange(study_id, step_index) %>% 
     group_by(study_id) %>% 
@@ -947,5 +949,46 @@ if(undeclared_pathway_history_analysis == TRUE){
 
   
   # print(plot_sankey_pathways_undeclared)
+  
+  # column visualization for comparison of outcome by semester CoE major was declared
+  declaration_time_outcome <- 
+    pathways_undeclared %>% 
+    mutate(grad_status_dataset = factor(grad_status_dataset)) %>% 
+    separate(col = pathway_history, into = c("step1", "step2", "step3", "step4"), sep = ":") %>%   # prep for network visualization
+    mutate(step2 = str_c(step1, step2, sep = ":")) %>% 
+    mutate(step3 = str_c(step2, step3, sep = ":")) %>% 
+    mutate(step4 = str_c(step3, step4, sep = ":")) %>%
+    mutate(step3 = if_else(
+      (str_detect(step2,'D')),NA,step3)
+    ) %>% 
+    mutate(step4 = if_else(
+      (str_detect(step3,'D') | is.na(step3)),NA,step4)
+    ) %>% 
+    mutate(undeclared_semesters = if_else( # indicate number of semesters spent in undeclared
+      !str_detect(step2,"S2U"),1, #true
+      (if_else( # false
+          !str_detect(step3,"S3U"),2, #true
+          3 #false
+    )))) %>% 
+    relocate(undeclared_semesters, .after = study_id) %>% # put in convenient location for viewing
+    group_by(undeclared_semesters, grad_status_dataset) %>% 
+    count() %>%
+    ungroup() %>% 
+    group_by(undeclared_semesters) %>% 
+    mutate(proportion = n/sum(n)) %>% 
+    ungroup() %>% 
+    mutate(grad_status_dataset = fct_relevel(grad_status_dataset,
+                                             c("Engineering Degree","Non-Engineering Degree","No Degree"))) 
+  
+  plot_declaration_time_outcome <- 
+    declaration_time_outcome %>%
+    ggplot(aes(x = undeclared_semesters, y = n, fill = factor(grad_status_dataset))) +
+    geom_col(position = "dodge") +
+    labs(y = "Number of students in cohort") +
+    labs(x = "Number of semesters in Undeclared Engineering") +
+    labs(fill = "Degree Outcome") +
+    theme_minimal()
+  
+  print(plot_declaration_time_outcome)
   
   }
