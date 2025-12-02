@@ -1021,6 +1021,11 @@ if(undeclared_pathway_history_analysis == TRUE){
     make_long(major_first, sem_2_major, grad_status_dataset) %>% # reformat and keep the desired mapping fill paramter
     mutate(node = factor(node, level = rev(levels(factor(node)))),
            next_node = factor(next_node, level = rev(levels(factor(next_node)))))  # reverse factor order to get sankey in alphabetical order top to bottom
+  
+  # randomize the colors to make sankey more legible
+  n_nodes_one <- nlevels(factor(sankey_undeclareds_one$node))
+  set.seed(123)
+  palette_random_one <-  sample(scales::hue_pal()(n_nodes_one))
     
   plot_sankey_undeclareds_one <-
     sankey_undeclareds_one %>% 
@@ -1032,6 +1037,7 @@ if(undeclared_pathway_history_analysis == TRUE){
     theme(axis.text.y = element_blank(),
           axis.ticks = element_blank(),  
           panel.grid = element_blank()) +
+    scale_fill_manual(values = palette_random_one) + # this uses randomized color order
     scale_x_discrete(labels = c("","major declared","final outcome")) +
     labs(x = "Pathways of Students who spent ONE semester in Undeclared Engineering")
   
@@ -1047,6 +1053,11 @@ if(undeclared_pathway_history_analysis == TRUE){
     mutate(node = factor(node, level = rev(levels(factor(node)))),
            next_node = factor(next_node, level = rev(levels(factor(next_node)))))  # reverse factor order to get sankey in alphabetical order top to bottom
   
+  # randomize the colors to make sankey more legible
+  n_nodes_two <- nlevels(factor(sankey_undeclareds_two$node))
+  set.seed(123)
+  palette_random_two <-  sample(scales::hue_pal()(n_nodes_two))
+  
   plot_sankey_undeclareds_two <-
     sankey_undeclareds_two %>% 
     ggplot(aes(x = x, next_x = next_x, node = node, next_node = next_node, fill = factor(node))) +
@@ -1057,6 +1068,7 @@ if(undeclared_pathway_history_analysis == TRUE){
     theme(axis.text.y = element_blank(),
           axis.ticks = element_blank(),  
           panel.grid = element_blank()) +
+    scale_fill_manual(values = palette_random_two) + # this uses randomized color order
     scale_x_discrete(labels = c("","major declared","final outcome")) +
     labs(x = "Pathways of Students who spent TWO semesters in Undeclared Engineering")
   
