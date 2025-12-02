@@ -1061,4 +1061,9 @@ if(undeclared_pathway_history_analysis == TRUE){
     labs(x = "Pathways of Students who spent TWO semesters in Undeclared Engineering")
   
   print(plot_sankey_undeclareds_two)
+  
+  # print(plot_sankey_undeclareds_one + plot_sankey_undeclareds_two + # combine into single figure
+  #         plot_layout(axes = "collect", guides = "collect") +
+  #         plot_annotation(title = "Pathways of Undeclared students based on number of undeclared semesters"))
+  
   }
