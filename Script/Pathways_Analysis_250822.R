@@ -853,7 +853,7 @@ if(undeclared_pathway_history_analysis == TRUE){
     labs(y = "Progression by semester of study at ISU (first semester is when student entered Engineering Undeclared)") +
     theme(plot.margin = margin(20, 80, 20, 80, "pt")) # pad the margins so that node labels not clipped when plotted
   
-  print(plot_tree_graph_pathways_undeclared_gpa_change)
+  # print(plot_tree_graph_pathways_undeclared_gpa_change)
 
   # print(plot_tree_graph_pathways_undeclared_first_sem_gpa / plot_tree_graph_pathways_undeclared_gpa_change + # combine into single figure
   #         plot_layout(axes = "collect", guides = "collect") +
@@ -989,6 +989,50 @@ if(undeclared_pathway_history_analysis == TRUE){
     labs(fill = "Degree Outcome") +
     theme_minimal()
   
-  print(plot_declaration_time_outcome)
+  # print(plot_declaration_time_outcome)
+  
+  # analysis of CoE majors and degree outcomes plotted by duration in undeclared
+  declaration_time_pathway <- # identify pathways steps for undeclared starts
+    pathways_undeclared %>% 
+    separate(col = pathway_history, into = c("step1", "step2", "step3", "step4"), sep = ":") %>%   # prep for network visualization
+    mutate(step2 = str_c(step1, step2, sep = ":")) %>% 
+    mutate(step3 = str_c(step2, step3, sep = ":")) %>% 
+    mutate(step4 = str_c(step3, step4, sep = ":")) %>%
+    mutate(step3 = if_else(
+      (str_detect(step2,'D')),NA,step3)
+    ) %>% 
+    mutate(step4 = if_else(
+      (str_detect(step3,'D') | is.na(step3)),NA,step4)
+    ) %>% 
+    mutate(undeclared_semesters = if_else( # indicate number of semesters spent in undeclared
+      !str_detect(step2,"S2U"),1, #true
+      (if_else( # false
+        !str_detect(step3,"S3U"),2, #true
+        3 #false
+      )))) %>% 
+    relocate(undeclared_semesters, .after = study_id)
+    
+  undeclareds_one_semester <- # select students who spent one semester as undeclared
+    declaration_time_pathway %>% 
+    filter(undeclared_semesters == 1)
+  
+  sankey_undeclareds_one <- # structure data for sankey
+    undeclareds_one_semester %>%
+    make_long(major_first, sem_2_major, grad_status_dataset)  # reformat and keep the desired mapping fill paramter
+
+  plot_sankey_undeclareds_one <-
+    sankey_undeclareds_one %>% 
+    ggplot(aes(x = x, next_x = next_x, node = node, next_node = next_node, fill = factor(node))) +
+    geom_sankey(flow.alpha = .8, node.color = 'gray90', show.legend = FALSE) +
+    geom_sankey_label(aes(label = node), size = 3, color = 'black', fill = 'gray90') +
+    theme_minimal() +
+    theme(legend.position = 'none') +
+    theme(axis.text.y = element_blank(),
+          axis.ticks = element_blank(),  
+          panel.grid = element_blank()) +
+    scale_x_discrete(labels = c("","major declared","final outcome")) +
+    labs(x = "Pathways of Students who spent ONE semester in Undeclared Engineering")
+  
+  print(plot_sankey_undeclareds_one)
   
   }
