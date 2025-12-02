@@ -1018,8 +1018,10 @@ if(undeclared_pathway_history_analysis == TRUE){
   
   sankey_undeclareds_one <- # structure data for sankey
     undeclareds_one_semester %>%
-    make_long(major_first, sem_2_major, grad_status_dataset)  # reformat and keep the desired mapping fill paramter
-
+    make_long(major_first, sem_2_major, grad_status_dataset) %>% # reformat and keep the desired mapping fill paramter
+    mutate(node = factor(node, level = rev(levels(factor(node)))),
+           next_node = factor(next_node, level = rev(levels(factor(next_node)))))  # reverse factor order to get sankey in alphabetical order top to bottom
+    
   plot_sankey_undeclareds_one <-
     sankey_undeclareds_one %>% 
     ggplot(aes(x = x, next_x = next_x, node = node, next_node = next_node, fill = factor(node))) +
@@ -1035,4 +1037,28 @@ if(undeclared_pathway_history_analysis == TRUE){
   
   print(plot_sankey_undeclareds_one)
   
+  undeclareds_two_semester <- 
+    declaration_time_pathway %>% 
+    filter(undeclared_semesters == 2)
+  
+  sankey_undeclareds_two <- # structure data for sankey
+    undeclareds_two_semester %>%
+    make_long(major_first, sem_3_major, grad_status_dataset) %>% # reformat and keep the desired mapping fill paramter
+    mutate(node = factor(node, level = rev(levels(factor(node)))),
+           next_node = factor(next_node, level = rev(levels(factor(next_node)))))  # reverse factor order to get sankey in alphabetical order top to bottom
+  
+  plot_sankey_undeclareds_two <-
+    sankey_undeclareds_two %>% 
+    ggplot(aes(x = x, next_x = next_x, node = node, next_node = next_node, fill = factor(node))) +
+    geom_sankey(flow.alpha = .8, node.color = 'gray90', show.legend = FALSE) +
+    geom_sankey_label(aes(label = node), size = 3, color = 'black', fill = 'gray90') +
+    theme_minimal() +
+    theme(legend.position = 'none') +
+    theme(axis.text.y = element_blank(),
+          axis.ticks = element_blank(),  
+          panel.grid = element_blank()) +
+    scale_x_discrete(labels = c("","major declared","final outcome")) +
+    labs(x = "Pathways of Students who spent TWO semesters in Undeclared Engineering")
+  
+  print(plot_sankey_undeclareds_two)
   }
