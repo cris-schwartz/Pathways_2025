@@ -670,7 +670,7 @@ print(plot_isu_degree_outcome_by_coe_duration + plot_coe_degree_outcome_by_coe_d
 }
 
 # STUDY OF THE PATHWAYS HISTORY OF UNDECLARED STARTS ####
-undeclared_pathway_history_analysis = TRUE # set switch to run analysis
+undeclared_pathway_history_analysis = FALSE # set switch to run analysis
 if(undeclared_pathway_history_analysis == TRUE){
   outcome_resolved_pathway <- 
     outcome_resolved %>% 
@@ -1079,3 +1079,131 @@ if(undeclared_pathway_history_analysis == TRUE){
   #         plot_annotation(title = "Pathways of Undeclared students based on number of undeclared semesters"))
   
   }
+
+# STUDY OF THE GENERAL PATHWAYS SUMMARIES BY MAJOR ####
+general_pathway_summary_analysis = TRUE # set switch to run analysis
+if(general_pathway_summary_analysis == TRUE){
+  # set up a loop to create summary table major-by-major
+  outcome_resolved_first_major <- # process the data to get ready for summaries by major
+    outcome_resolved %>% 
+    mutate(coe_program = if_else( # get assigned to program if started undeclared
+      (undeclared_start == 0),major_first,major_second
+    )) %>% 
+    relocate(coe_program, .before = major_first) %>% 
+    mutate(major_first = if_else(
+      (undeclared_start == 0),major_first, major_second
+    )) %>% 
+    mutate(major_second = if_else(
+      (undeclared_start == 0), major_second, major_third
+    )) %>% 
+    mutate(major_third = if_else(
+      (major_second == major_third),NA, major_third
+    ))
+
+  program_pathway_summary <- # create a tibble template for summaries
+    tibble(program_name = character(),
+           program_size = integer(),
+           undeclared_start_prop = numeric(),
+           first_maj_completion_prop = numeric(),
+           other_coe_completion_prop = numeric(),
+           non_coe_completion_prop = numeric(),
+           no_degree_prop = numeric(),
+           mean_semesters = numeric(),
+           mean_first_gpa = numeric(),
+           early_departure_prop = numeric(),
+           departure_gpa = numeric(),
+           other_origin_grad_prop = numeric()
+           )
+  
+  program_list <-  c("Aerospace Engineering", "Agricultural Engineering", "Biological Systems Engineering",
+                     "Chemical Engineering", "Civil Engineering", "Computer Engineering",
+                     "Construction Engineering", "Cyber Security Engineering", "Electrical Engineering",
+                     "Environmental Engineering", "Industrial Engineering", "Materials Engineering",
+                     "Mechanical Engineering", "Software Engineering")
+  for (program_name in program_list){ # build a row of data for each program
+    program_dataset <- # select only students who chose program as first major
+      outcome_resolved_first_major %>% 
+      filter(major_first == program_name)
+    
+    program_size <- # how many declared as first CoE major
+      program_dataset %>% 
+      count() %>% 
+      pull(n)
+    
+    program_undeclared_start <- # how many started in undeclared
+      program_dataset %>% 
+      filter(undeclared_start == 1) %>% 
+      count() %>% 
+      mutate(undeclared_start_prop = n/program_size) %>% 
+      select(undeclared_start_prop)
+      
+    
+    program_completion_in_first_major <- # how many completed the degree in their first major
+      program_dataset %>% 
+      filter(graduated_program == program_name) %>% 
+      count() %>% 
+      mutate(first_maj_completion_prop = n/program_size) %>%
+      select(first_maj_completion_prop)
+    
+    program_completion_in_other_coe_major <- # how many transferred to another CoE major and graduated
+      program_dataset %>% 
+      filter(graduated_college == 'Engineering' & graduated_program != program_name) %>% 
+      count() %>% 
+      mutate(other_coe_completion_prop = n/program_size) %>%
+      select(other_coe_completion_prop)
+    
+    program_completion_non_coe <- # how many left CoE but still got ISU degree
+      program_dataset %>% 
+      filter(grad_status_dataset == 'Non-Engineering Degree') %>% 
+      count() %>% 
+      mutate(non_coe_completion_prop = n/program_size) %>%
+      select(non_coe_completion_prop)
+    
+    program_no_degree <- # how many left ISU with no degree
+      program_dataset %>% 
+      filter(grad_status_dataset == 'No Degree') %>% 
+      count() %>% 
+      mutate(no_degree_prop = n/program_size) %>%
+      select(no_degree_prop)
+
+    program_coe_duration <- # what is the mean number of semesters in CoE of all who declared this as first major
+      program_dataset %>% 
+      summarize(mean_semesters = mean(coe_duration))
+  
+    program_first_gpa <- # what is the mean first semester GPA
+      program_dataset %>% 
+      summarize(mean_first_gpa = mean(first_sem_gpa, na.rm = TRUE))
+    
+    program_isu_departure_early <- # count students who departed ISU after staying in CoE 2 semesters or less
+      program_dataset %>% 
+      filter(grad_status_dataset == 'No Degree') %>% 
+      filter(coe_duration <= 2) %>% 
+      summarize(count = n(), mean_gpa = mean(first_sem_gpa, na.rm = TRUE)) %>% 
+      mutate(early_departure_prop = count/program_size, departure_gpa = mean_gpa) %>% 
+      select(early_departure_prop, departure_gpa)
+    
+    program_all_grads <- # count total number of program graduates regardless of their first CoE major
+      outcome_resolved_first_major %>% 
+      filter(graduated_program == program_name) %>%
+      count() %>% 
+      pull(n)
+      
+    program_entry <- # count number of grads who transferred from other CoE majors
+      outcome_resolved_first_major %>% 
+      filter(graduated_program == program_name) %>% 
+      filter(major_first != program_name & (major_second == program_name | major_third == program_name)) %>% 
+      count() %>% 
+      mutate(other_origin_grad_prop = n/program_all_grads) %>% 
+      select(other_origin_grad_prop)
+    
+    program_row = tibble(program_name,program_size,program_undeclared_start, program_completion_in_first_major, # assemble the program's row
+                         program_completion_in_other_coe_major, program_completion_non_coe, program_no_degree,
+                         program_coe_duration, program_first_gpa, program_isu_departure_early,
+                         program_entry)
+    
+    program_pathway_summary <- # append to the summary tibble
+      program_pathway_summary %>% 
+      add_row(program_row)
+  } 
+  
+}
