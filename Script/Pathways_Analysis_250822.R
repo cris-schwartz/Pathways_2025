@@ -1227,41 +1227,130 @@ if(general_pathway_summary_analysis == TRUE){
       add_row(program_row)
   } 
   
-  plot_program_pathway_summary_undeclared_start <- 
+  plot_program_undeclared_start <- 
     program_pathway_summary %>% 
     ggplot(aes(x = program_abbreviation, y = undeclared_start_prop, fill = program_abbreviation)) +
     scale_fill_manual(values = program_colors) +
     geom_text(aes(label = program_size)) + # put program size number on plot
     geom_col(position = "dodge") +
-    ylim(0,1) +
+    ylim(0,0.5) +
     theme_minimal() +
     labs(x = NULL, y = "Proportion of students coming from Undeclared Engineering") +
     guides(fill = "none") # turn off legend
     
+  # print(plot_program_undeclared_start)
   
-  print(plot_program_pathway_summary_undeclared_start)
+  plot_program_major_completion <- 
+    program_pathway_summary %>% 
+    ggplot(aes(x = program_abbreviation, y = first_maj_completion_prop, fill = program_abbreviation)) +
+    scale_fill_manual(values = program_colors) +
+    # geom_text(aes(label = program_size)) + # put program size number on plot
+    geom_col(position = "dodge") +
+    ylim(0,1) +
+    theme_minimal() +
+    labs(x = NULL, y = "Proportion of students who graduated in their first chosen major") +
+    guides(fill = "none") # turn off legend
+  
+  # print(plot_program_major_completion)
     
-    # plot_isu_degree_outcome_by_coe_duration <- # get plot of ISU degree outcome performance by number of semesters spent in CoE
-    # outcomes_duration_normalized %>% 
-    # group_by(coe_duration, undeclared_start, degree_outcome) %>% 
-    # summarize(count = n()) %>% 
-    # ungroup %>%
-    # group_by(coe_duration, undeclared_start) %>% 
-    # mutate(grad_prop_isu = count/sum(count)) %>% 
-    # filter(degree_outcome == 'Degree') %>% 
-    # ungroup() %>% 
-    # complete(coe_duration, undeclared_start, fill = list(degree_outcome = 'Degree', count = 0, grad_prop_isu = 0)) %>% # fill in missing rows for plot
-    # mutate(undeclared_start = if_else(
-    #   (undeclared_start == 0), major_declared, 'Undeclared'
-    # )) %>% 
-    # ggplot(aes(x = coe_duration, y = grad_prop_isu, fill = fct_rev(undeclared_start))) +
-    # ylim(0,1) +
-    # geom_col(position = "dodge") +
-    # (if (cohort_outcomes_study == 0) {
-    #   labs(y = "Proportion of CoE students earning any ISU degree")
-    # } else {
-    #   labs(y = glue("Proportion of {major_declared} students earning any ISU degree"))
-    # })+
-    # labs(x = "Number of semesters that student spent in CoE", fill = "First CoE Semester") +
-    # theme_minimal()
+  plot_program_other_major <- 
+    program_pathway_summary %>% 
+    ggplot(aes(x = program_abbreviation, y = other_coe_completion_prop, fill = program_abbreviation)) +
+    scale_fill_manual(values = program_colors) +
+    # geom_text(aes(label = program_size)) + # put program size number on plot
+    geom_col(position = "dodge") +
+    ylim(0,.25) +
+    theme_minimal() +
+    labs(x = NULL, y = "Proportion of students who started in major but graduated in another CoE major") +
+    guides(fill = "none") # turn off legend
+  
+  print(plot_program_other_major)
+  
+  plot_program_non_coe_grad <- 
+    program_pathway_summary %>% 
+    ggplot(aes(x = program_abbreviation, y = non_coe_completion_prop, fill = program_abbreviation)) +
+    scale_fill_manual(values = program_colors) +
+    # geom_text(aes(label = program_size)) + # put program size number on plot
+    geom_col(position = "dodge") +
+    ylim(0,.5) +
+    theme_minimal() +
+    labs(x = NULL, y = "Proportion of students who started in major but graduated in non-CoE major") +
+    guides(fill = "none") # turn off legend
+  
+  print(plot_program_non_coe_grad)
+  
+  plot_program_no_degree <- 
+    program_pathway_summary %>% 
+    ggplot(aes(x = program_abbreviation, y = no_degree_prop, fill = program_abbreviation)) +
+    scale_fill_manual(values = program_colors) +
+    # geom_text(aes(label = program_size)) + # put program size number on plot
+    geom_col(position = "dodge") +
+    ylim(0,.5) +
+    theme_minimal() +
+    labs(x = NULL, y = "Proportion of students who started in major but did not graduate") +
+    guides(fill = "none") # turn off legend
+  
+  print(plot_program_no_degree)
+  
+  plot_program_semesters <- 
+    program_pathway_summary %>% 
+    ggplot(aes(x = program_abbreviation, y = mean_semesters, fill = program_abbreviation)) +
+    scale_fill_manual(values = program_colors) +
+    geom_col(position = "dodge") +
+    # ylim(0,.5) +
+    theme_minimal() +
+    labs(x = NULL, y = "Mean number of semesters spent in CoE") +
+    guides(fill = "none") # turn off legend
+  
+  print(plot_program_semesters)
+  
+  plot_program_first_gpa <- 
+    program_pathway_summary %>% 
+    ggplot(aes(x = program_abbreviation, y = mean_first_gpa, fill = program_abbreviation)) +
+    scale_fill_manual(values = program_colors) +
+    geom_col(position = "dodge") +
+    ylim(0,4) +
+    theme_minimal() +
+    labs(x = NULL, y = "Mean first semester GPA") +
+    guides(fill = "none") # turn off legend
+  
+  print(plot_program_first_gpa)
+  
+  plot_program_early_departure <- 
+    program_pathway_summary %>% 
+    ggplot(aes(x = program_abbreviation, y = early_departure_prop, fill = program_abbreviation)) +
+    scale_fill_manual(values = program_colors) +
+    geom_col(position = "dodge") +
+    theme_minimal() +
+    scale_y_continuous(sec.axis = sec_axis(~ . *16, name = "first semester GPA")) +
+    geom_point(aes(y = departure_gpa/16)) +
+    labs(x = NULL, y = "Proportion of students who left CoE within their first two semesters") +
+    guides(fill = "none") # turn off legend
+  
+  print(plot_program_early_departure)
+  
+  plot_program_other_origin <- 
+    program_pathway_summary %>% 
+    ggplot(aes(x = program_abbreviation, y = other_origin_grad_prop, fill = program_abbreviation)) +
+    scale_fill_manual(values = program_colors) +
+    # geom_text(aes(label = program_size)) + # put program size number on plot
+    geom_col(position = "dodge") +
+    ylim(0,.5) +
+    theme_minimal() +
+    labs(x = NULL, y = "Proportion of a program's graduates who started in a different CoE major") +
+    guides(fill = "none") # turn off legend
+  
+  print(plot_program_other_origin)
+  
+  # plot_program_departure_gpa <- 
+  #   program_pathway_summary %>% 
+  #   ggplot(aes(x = program_abbreviation, y = early_departure_prop, fill = program_abbreviation)) +
+  #   scale_fill_manual(values = program_colors) +
+  #   geom_col(position = "dodge") +
+  #   ylim(0,.25) +
+  #   theme_minimal() +
+  #   labs(x = NULL, y = "Proportion of students who left CoE within their first two semesters") +
+  #   guides(fill = "none") # turn off legend
+  # 
+  # print(plot_program_early_departure)
 }
