@@ -1102,6 +1102,8 @@ if(general_pathway_summary_analysis == TRUE){
 
   program_pathway_summary <- # create a tibble template for summaries
     tibble(program_name = character(),
+           program_abbreviation = character(),
+           program_plot_color = character(),
            program_size = integer(),
            undeclared_start_prop = numeric(),
            first_maj_completion_prop = numeric(),
@@ -1115,12 +1117,30 @@ if(general_pathway_summary_analysis == TRUE){
            other_origin_grad_prop = numeric()
            )
   
-  program_list <-  c("Aerospace Engineering", "Agricultural Engineering", "Biological Systems Engineering",
+  program_list <-  tibble(program_name = c("Aerospace Engineering", "Agricultural Engineering", "Biological Systems Engineering",
                      "Chemical Engineering", "Civil Engineering", "Computer Engineering",
                      "Construction Engineering", "Cyber Security Engineering", "Electrical Engineering",
                      "Environmental Engineering", "Industrial Engineering", "Materials Engineering",
-                     "Mechanical Engineering", "Software Engineering")
-  for (program_name in program_list){ # build a row of data for each program
+                     "Mechanical Engineering", "Software Engineering"), 
+                     program_abbreviation = c("AERE", "AE", "BSE", "CHE", "CE",
+                                              "CPRE", "CONE", "CYBE", "EE", "ENVE",
+                                              "IE", "MATE", "ME", "SE"),
+                    program_plot_color = c(
+                      "#4E79A7","#A0CBE8","#F28E2B","#59A14F",
+                      "#B6992D","#F1CE63","#499894","#86BCB6",
+                      "#E15759","#FF9D9A","#79706E","#D37295",
+                      "#B07AA1","#9D7660") # based on Tableau 20 color palette
+                     )
+  
+  program_colors <- setNames(program_list$program_plot_color, program_list$program_abbreviation) # ensure programs
+                         # get same color in each plot
+  
+  for (program in seq_len(nrow(program_list))){ # build a row of data for each program
+    
+    program_name = program_list$program_name[program]
+    program_abbreviation = program_list$program_abbreviation[program]
+    program_plot_color = program_list$program_plot_color[program]
+    
     program_dataset <- # select only students who chose program as first major
       outcome_resolved_first_major %>% 
       filter(major_first == program_name)
@@ -1196,7 +1216,8 @@ if(general_pathway_summary_analysis == TRUE){
       mutate(other_origin_grad_prop = n/program_all_grads) %>% 
       select(other_origin_grad_prop)
     
-    program_row = tibble(program_name,program_size,program_undeclared_start, program_completion_in_first_major, # assemble the program's row
+    program_row = tibble(program_name, program_abbreviation, program_plot_color,
+                         program_size, program_undeclared_start, program_completion_in_first_major, # assemble the program's row
                          program_completion_in_other_coe_major, program_completion_non_coe, program_no_degree,
                          program_coe_duration, program_first_gpa, program_isu_departure_early,
                          program_entry)
@@ -1206,4 +1227,41 @@ if(general_pathway_summary_analysis == TRUE){
       add_row(program_row)
   } 
   
+  plot_program_pathway_summary_undeclared_start <- 
+    program_pathway_summary %>% 
+    ggplot(aes(x = program_abbreviation, y = undeclared_start_prop, fill = program_abbreviation)) +
+    scale_fill_manual(values = program_colors) +
+    geom_text(aes(label = program_size)) + # put program size number on plot
+    geom_col(position = "dodge") +
+    ylim(0,1) +
+    theme_minimal() +
+    labs(x = NULL, y = "Proportion of students coming from Undeclared Engineering") +
+    guides(fill = "none") # turn off legend
+    
+  
+  print(plot_program_pathway_summary_undeclared_start)
+    
+    # plot_isu_degree_outcome_by_coe_duration <- # get plot of ISU degree outcome performance by number of semesters spent in CoE
+    # outcomes_duration_normalized %>% 
+    # group_by(coe_duration, undeclared_start, degree_outcome) %>% 
+    # summarize(count = n()) %>% 
+    # ungroup %>%
+    # group_by(coe_duration, undeclared_start) %>% 
+    # mutate(grad_prop_isu = count/sum(count)) %>% 
+    # filter(degree_outcome == 'Degree') %>% 
+    # ungroup() %>% 
+    # complete(coe_duration, undeclared_start, fill = list(degree_outcome = 'Degree', count = 0, grad_prop_isu = 0)) %>% # fill in missing rows for plot
+    # mutate(undeclared_start = if_else(
+    #   (undeclared_start == 0), major_declared, 'Undeclared'
+    # )) %>% 
+    # ggplot(aes(x = coe_duration, y = grad_prop_isu, fill = fct_rev(undeclared_start))) +
+    # ylim(0,1) +
+    # geom_col(position = "dodge") +
+    # (if (cohort_outcomes_study == 0) {
+    #   labs(y = "Proportion of CoE students earning any ISU degree")
+    # } else {
+    #   labs(y = glue("Proportion of {major_declared} students earning any ISU degree"))
+    # })+
+    # labs(x = "Number of semesters that student spent in CoE", fill = "First CoE Semester") +
+    # theme_minimal()
 }
