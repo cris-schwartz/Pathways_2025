@@ -1335,7 +1335,7 @@ if(general_pathway_summary_analysis == TRUE){
     scale_fill_manual(values = program_colors) +
     # geom_text(aes(label = program_size)) + # put program size number on plot
     geom_col(position = "dodge") +
-    ylim(0,.5) +
+    ylim(0,.75) +
     theme_minimal() +
     labs(x = NULL, y = "Proportion of a program's graduates who started in a different CoE major") +
     guides(fill = "none") # turn off legend
