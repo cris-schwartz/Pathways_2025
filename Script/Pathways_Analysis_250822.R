@@ -1105,6 +1105,7 @@ if(general_pathway_summary_analysis == TRUE){
            program_abbreviation = character(),
            program_plot_color = character(),
            program_size = integer(),
+           program_grads = integer(),
            undeclared_start_prop = numeric(),
            first_maj_completion_prop = numeric(),
            other_coe_completion_prop = numeric(),
@@ -1127,11 +1128,11 @@ if(general_pathway_summary_analysis == TRUE){
                                               "IE", "MATE", "ME", "SE"),
                     program_plot_color = c(
                       "#4E79A7","#A0CBE8","#F28E2B","#59A14F",
-                      "#B6992D","#F1CE63","#499894","#86BCB6",
-                      "#E15759","#FF9D9A","#79706E","#D37295",
+                      "#B6992D","#F1CE63","#D37295","#86BCB6",
+                      "#E15759","#FF9D9A","#79706E","#499894",
                       "#B07AA1","#9D7660") # based on Tableau 20 color palette
                      )
-  
+
   program_colors <- setNames(program_list$program_plot_color, program_list$program_abbreviation) # ensure programs
                          # get same color in each plot
   
@@ -1147,6 +1148,12 @@ if(general_pathway_summary_analysis == TRUE){
     
     program_size <- # how many declared as first CoE major
       program_dataset %>% 
+      count() %>% 
+      pull(n)
+    
+    program_grads <- 
+      outcome_resolved_first_major %>% 
+      filter(graduated_program == program_name) %>%
       count() %>% 
       pull(n)
     
@@ -1217,7 +1224,8 @@ if(general_pathway_summary_analysis == TRUE){
       select(other_origin_grad_prop)
     
     program_row = tibble(program_name, program_abbreviation, program_plot_color,
-                         program_size, program_undeclared_start, program_completion_in_first_major, # assemble the program's row
+                         program_size, program_grads,
+                         program_undeclared_start, program_completion_in_first_major, # assemble the program's row
                          program_completion_in_other_coe_major, program_completion_non_coe, program_no_degree,
                          program_coe_duration, program_first_gpa, program_isu_departure_early,
                          program_entry)
@@ -1231,11 +1239,21 @@ if(general_pathway_summary_analysis == TRUE){
     program_pathway_summary %>% 
     ggplot(aes(x = program_abbreviation, y = undeclared_start_prop, fill = program_abbreviation)) +
     scale_fill_manual(values = program_colors) +
-    geom_text(aes(label = program_size)) + # put program size number on plot
+    geom_text(aes(label = program_size), vjust = -1) + # put program size number on plot
     geom_col(position = "dodge") +
     ylim(0,0.5) +
     theme_minimal() +
-    labs(x = NULL, y = "Proportion of students coming from Undeclared Engineering") +
+    labs(x = "Students' first declared CoE major", 
+         y = "Proportion who started in Undeclared", 
+         title = "Undeclared pathways to CoE majors") +
+    annotate("text", x = 0, y = 0.5,
+             label = "Values indicate number of students in the dataset\n who declared the program as their first CoE major",
+             hjust = 0, vjust = 1) +
+    # labs(x = NULL, y = NULL) +
+    # annotate("text", x = Inf, y = Inf,
+    #   label = "Proportion of students coming from Undeclared Engineering",
+    #   hjust = 1, vjust = 2, size = 3
+    #   ) +
     guides(fill = "none") # turn off legend
     
   # print(plot_program_undeclared_start)
@@ -1264,7 +1282,7 @@ if(general_pathway_summary_analysis == TRUE){
     labs(x = NULL, y = "Proportion of students who started in major but graduated in another CoE major") +
     guides(fill = "none") # turn off legend
   
-  print(plot_program_other_major)
+  # print(plot_program_other_major)
   
   plot_program_non_coe_grad <- 
     program_pathway_summary %>% 
@@ -1277,7 +1295,7 @@ if(general_pathway_summary_analysis == TRUE){
     labs(x = NULL, y = "Proportion of students who started in major but graduated in non-CoE major") +
     guides(fill = "none") # turn off legend
   
-  print(plot_program_non_coe_grad)
+  # print(plot_program_non_coe_grad)
   
   plot_program_no_degree <- 
     program_pathway_summary %>% 
@@ -1290,7 +1308,7 @@ if(general_pathway_summary_analysis == TRUE){
     labs(x = NULL, y = "Proportion of students who started in major but did not graduate") +
     guides(fill = "none") # turn off legend
   
-  print(plot_program_no_degree)
+  # print(plot_program_no_degree)
   
   plot_program_semesters <- 
     program_pathway_summary %>% 
@@ -1302,7 +1320,7 @@ if(general_pathway_summary_analysis == TRUE){
     labs(x = NULL, y = "Mean number of semesters spent in CoE") +
     guides(fill = "none") # turn off legend
   
-  print(plot_program_semesters)
+  # print(plot_program_semesters)
   
   plot_program_first_gpa <- 
     program_pathway_summary %>% 
@@ -1314,7 +1332,7 @@ if(general_pathway_summary_analysis == TRUE){
     labs(x = NULL, y = "Mean first semester GPA") +
     guides(fill = "none") # turn off legend
   
-  print(plot_program_first_gpa)
+  # print(plot_program_first_gpa)
   
   plot_program_early_departure <- 
     program_pathway_summary %>% 
@@ -1327,30 +1345,67 @@ if(general_pathway_summary_analysis == TRUE){
     labs(x = NULL, y = "Proportion of students who left CoE within their first two semesters") +
     guides(fill = "none") # turn off legend
   
-  print(plot_program_early_departure)
+  # print(plot_program_early_departure)
   
   plot_program_other_origin <- 
     program_pathway_summary %>% 
     ggplot(aes(x = program_abbreviation, y = other_origin_grad_prop, fill = program_abbreviation)) +
     scale_fill_manual(values = program_colors) +
+    geom_text(aes(label = program_grads), vjust = -1) + # put program size number on plot
     # geom_text(aes(label = program_size)) + # put program size number on plot
     geom_col(position = "dodge") +
     ylim(0,.75) +
     theme_minimal() +
-    labs(x = NULL, y = "Proportion of a program's graduates who started in a different CoE major") +
-    guides(fill = "none") # turn off legend
+    # labs(x = NULL, y = "Proportion of a program's graduates who started in a different CoE major") +
+    labs(x = "Students' degree program", 
+         y = "Proportion who started in different CoE major", 
+         title = "Program inheritance from other CoE majors") +
+    annotate("text", x = 0, y = 0.7,
+             label = "Values indicate number of students in the dataset\n who started and completed a degree in each program",
+             hjust = 0, vjust = 1) +
+        guides(fill = "none") # turn off legend
   
-  print(plot_program_other_origin)
+ 
+    # labs(x = NULL, y = NULL) +
+    # annotate("text", x = Inf, y = Inf,
+    #   label = "Proportion of students coming from Undeclared Engineering",
+    #   hjust = 1, vjust = 2, size = 3
+    #   ) +
   
-  # plot_program_departure_gpa <- 
-  #   program_pathway_summary %>% 
-  #   ggplot(aes(x = program_abbreviation, y = early_departure_prop, fill = program_abbreviation)) +
-  #   scale_fill_manual(values = program_colors) +
-  #   geom_col(position = "dodge") +
-  #   ylim(0,.25) +
-  #   theme_minimal() +
-  #   labs(x = NULL, y = "Proportion of students who left CoE within their first two semesters") +
-  #   guides(fill = "none") # turn off legend
+  # print(plot_program_other_origin)
+  
+  
+  # combine all into a single figure    
+  # combined_plot_program_summaries <- 
+  #   plot_program_undeclared_start + plot_program_major_completion + plot_program_other_major +
+  #     plot_program_non_coe_grad + plot_program_no_degree + plot_program_semesters + 
+  #     plot_program_first_gpa + plot_program_early_departure + plot_program_other_origin +
+  #     # plot_layout(ncol = 3) +
+  #     plot_annotation(title = "Degree program pathway summaries") &
+  #   theme(axis.title.x = element_blank(),
+  #         axis.text.x = element_blank(),
+  #         axis.ticks.x = element_blank())
   # 
-  # print(plot_program_early_departure)
+  # 
+  #   for (panel in 7:9) {
+  #     combined_plot_program_summaries[[panel]] <-
+  #       combined_plot_program_summaries[[panel]] +
+  #         theme(axis.title = element_text(),
+  #           axis.text.x = element_text(),
+  #           axis.ticks.x = element_line())
+  #     }
+  #   print(combined_plot_program_summaries)
+  
+# plot of origins of programs' students
+  plot_program_undeclared_start <- 
+    plot_program_undeclared_start +
+    theme(axis.text.x = element_blank())
+  
+  combined_plot_origin_stories <- 
+    plot_program_undeclared_start / plot_program_other_origin +
+    plot_annotation(title = "Origins of students based on program")
+    
+  
+  print(combined_plot_origin_stories)
+
 }
