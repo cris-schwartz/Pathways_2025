@@ -1248,11 +1248,15 @@ if(general_pathway_summary_analysis == TRUE){
     labs(x = "Degree Program", 
          y = "Number of students", 
          title = "Program size comparison of students who started and had time to finish degree") +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
     annotate("text", x = 0.5, y = 4000,
              label = "Program Size Comparison",
              hjust = 0, vjust = 1, size = 6, fontface = "bold") +
     annotate("text", x = 0.5, y = 3600,
-             label = "Solid bars indicate number of students who graduated from each program\nLightened bars indicate number of students who selected each program as their first major",
+             label = paste("Solid bars indicate number of students who graduated from each program",
+             "\nLightened bars indicate number who selected each program as their first major",
+             "\nNote: Not all of a program's graduates originally started in that program"),
              hjust = 0, vjust = 1, lineheight = 0.9) 
   
   # print(plot_program_size_comparison)
@@ -1269,6 +1273,8 @@ if(general_pathway_summary_analysis == TRUE){
          y = "Proportion of total", 
          #title = "Undeclared pathways to CoE majors"
          ) +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
     annotate("text", x = 0.5, y = 0.5,
              label = "Undeclared Pathways to Programs",
              hjust = 0, vjust = 1, size = 6, fontface = "bold") +
@@ -1278,19 +1284,79 @@ if(general_pathway_summary_analysis == TRUE){
     guides(fill = "none") # turn off legend
     
   # print(plot_program_undeclared_start)
+
+  plot_program_other_origin <- 
+    program_pathway_summary %>% 
+    ggplot(aes(x = program_abbreviation, y = other_origin_grad_prop, fill = program_abbreviation)) +
+    scale_fill_manual(values = program_colors) +
+    # geom_text(aes(label = program_grads), vjust = -1) + # put program size number on plot
+    geom_col(position = "dodge") +
+    ylim(0,.75) +
+    theme_minimal() +
+    labs(x = "Degree Program", 
+         y = "Proportion of total", 
+         #title = "Undeclared pathways to CoE majors"
+    ) +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
+    annotate("text", x = 0.5, y = 0.7,
+             label = "Intra-CoE Program Transfer Pathways",
+             hjust = 0, vjust = 1, size = 6, fontface = "bold") +
+    annotate("text", x = 0.5, y = 0.62,
+             label = "Bars indicate proportion of graduates from each program\nwho originally started in a different CoE program",
+             hjust = 0, vjust = 1, lineheight = 0.9) +
+    guides(fill = "none") # turn off legend
   
+  # print(plot_program_other_origin)
+  
+  # Assembled plot of student origins by program
+  plot_program_size_comparison <- 
+    plot_program_size_comparison +
+    theme(plot.title = element_blank(),
+          axis.title.x = element_blank()
+          #axis.text.x = element_blank(),
+          #axis.ticks.x = element_blank()
+    )
+  
+  plot_program_undeclared_start <- 
+    plot_program_undeclared_start +
+    theme(plot.title = element_blank(),
+          axis.title.x = element_blank()
+          #axis.text.x = element_blank(),
+          #axis.ticks.x = element_blank()
+    )
+  
+  combined_plot_origin_stories <- 
+    plot_program_size_comparison/ plot_program_undeclared_start / plot_program_other_origin
+  # plot_annotation(title = "Origins of students based on program")
+  
+  print(combined_plot_origin_stories)
+  
+  # prepare assembled plot of pathway outcomes    
   plot_program_major_completion <- 
     program_pathway_summary %>% 
     ggplot(aes(x = program_abbreviation, y = first_maj_completion_prop, fill = program_abbreviation)) +
     scale_fill_manual(values = program_colors) +
     # geom_text(aes(label = program_size)) + # put program size number on plot
     geom_col(position = "dodge") +
-    ylim(0,1) +
+    ylim(0,0.7) +
     theme_minimal() +
-    labs(x = NULL, y = "Proportion of students who graduated in their first chosen major") +
-    guides(fill = "none") # turn off legend
-  
-  # print(plot_program_major_completion)
+    # labs(x = NULL, y = "Proportion of students who graduated in their first chosen major") +
+    guides(fill = "none") + # turn off legend
+    labs(x = "Degree Program", 
+          y = "Proportion of total", 
+          title = "Proportion of students who graduated from the same CoE program they started in") +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
+    annotate("text", x = 0.5, y = 0.7,
+             label = "Graduation in First Declared Major",
+             hjust = 0, vjust = 1, size = 6, fontface = "bold") +
+    annotate("text", x = 0.5, y = 0.65,
+             label = paste("Bars indicate proportion of students who graduated from the",
+             "\nSAME CoE program they started in"),
+             hjust = 0, vjust = 1, lineheight = 0.9)
+
+    # print(plot_program_major_completion)
     
   plot_program_other_major <- 
     program_pathway_summary %>% 
@@ -1300,8 +1366,20 @@ if(general_pathway_summary_analysis == TRUE){
     geom_col(position = "dodge") +
     ylim(0,.25) +
     theme_minimal() +
-    labs(x = NULL, y = "Proportion of students who started in major but graduated in another CoE major") +
-    guides(fill = "none") # turn off legend
+    # labs(x = NULL, y = "Proportion of students who started in major but graduated in another CoE major") +
+    guides(fill = "none") + # turn off legend
+    labs(x = "Degree Program", 
+       y = "Proportion of total", 
+       title = "Proportion of students who graduated from a DIFFERENT CoE program than they started in") +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
+    annotate("text", x = 0.5, y = 0.25,
+             label = "Graduation in DIFFERENT CoE Program",
+             hjust = 0, vjust = 1, size = 6, fontface = "bold") +
+    annotate("text", x = 0.5, y = 0.23,
+             label = paste("Bars indicate proportion of students who started in the CoE major shown",
+                           "\non the axis, but got a degree in a DIFFERENT CoE program"),
+             hjust = 0, vjust = 1, lineheight = 0.9)
   
   # print(plot_program_other_major)
   
@@ -1311,10 +1389,23 @@ if(general_pathway_summary_analysis == TRUE){
     scale_fill_manual(values = program_colors) +
     # geom_text(aes(label = program_size)) + # put program size number on plot
     geom_col(position = "dodge") +
-    ylim(0,.5) +
+    # ylim(0,.5) +
     theme_minimal() +
-    labs(x = NULL, y = "Proportion of students who started in major but graduated in non-CoE major") +
-    guides(fill = "none") # turn off legend
+    # labs(x = NULL, y = "Proportion of students who started in major but graduated in non-CoE major") +
+    guides(fill = "none") + # turn off legend
+    labs(x = "Degree Program", 
+       y = "Proportion of total", 
+       title = "Proportion of students who earned a non-CoE degree") +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
+    annotate("text", x = 0.5, y = 0.4,
+             label = "Graduation from ISU with non-CoE Degree",
+             hjust = 0, vjust = 1, size = 6, fontface = "bold") +
+    annotate("text", x = 0.5, y = 0.37,
+             label = paste("Bars indicate proportion of students who started in the CoE major shown",
+                           "\non the axis, but got an ISU degree in another college"),
+             hjust = 0, vjust = 1, lineheight = 0.9)  
+  
   
   # print(plot_program_non_coe_grad)
   
@@ -1324,13 +1415,74 @@ if(general_pathway_summary_analysis == TRUE){
     scale_fill_manual(values = program_colors) +
     # geom_text(aes(label = program_size)) + # put program size number on plot
     geom_col(position = "dodge") +
-    ylim(0,.5) +
+    # ylim(0,.5) +
     theme_minimal() +
     labs(x = NULL, y = "Proportion of students who started in major but did not graduate") +
-    guides(fill = "none") # turn off legend
+    guides(fill = "none") + # turn off legend
+    labs(x = "Degree Program", 
+       y = "Proportion of total", 
+       title = "Proportion of students who did not graduate from ISU") +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
+    annotate("text", x = 0.5, y = 0.4,
+             label = "Left ISU Without a Degree",
+             hjust = 0, vjust = 1, size = 6, fontface = "bold") +
+    annotate("text", x = 0.5, y = 0.37,
+             label = paste("Bars indicate proportion of students who started in the CoE major shown",
+                           "\non the axis, but did not earn an ISU degree"),
+             hjust = 0, vjust = 1, lineheight = 0.9)    
+  
   
   # print(plot_program_no_degree)
+
+  # Assembled plot of student outcomes by program
+  plot_program_major_completion <- 
+    plot_program_major_completion +
+    theme(plot.title = element_blank(),
+          axis.title.x = element_blank(),
+          axis.text.x = element_blank(),
+          axis.ticks.x = element_blank()
+    )
   
+  plot_program_other_major <- 
+    plot_program_other_major +
+    theme(plot.title = element_blank(),
+          axis.title.x = element_blank(),
+          axis.text.x = element_blank(),
+          axis.ticks.x = element_blank(),
+          axis.title.y = element_blank()
+          # axis.text.y = element_blank(),
+          # axis.tick.y = element_blank()
+    )
+  
+  plot_program_non_coe_grad <- 
+    plot_program_non_coe_grad + 
+    theme(plot.title = element_blank(),
+          axis.title.x = element_blank()
+          #axis.text.x = element_blank(),
+          #axis.ticks.x = element_blank()
+    )
+  
+  plot_program_no_degree <- 
+    plot_program_no_degree +
+    theme(plot.title = element_blank(),
+          axis.title.x = element_blank(),
+          #axis.text.x = element_blank(),
+          #axis.ticks.x = element_blank()
+          axis.title.y = element_blank()
+          # axis.text.y = element_blank(),
+          # axis.tick.y = element_blank()
+    )
+  
+    combined_plot_outcomes_stories <- 
+    (plot_program_major_completion + plot_program_other_major) /
+      (plot_program_non_coe_grad + plot_program_no_degree)
+  # plot_annotation(title = "Origins of students based on program")
+  
+  print(combined_plot_outcomes_stories)
+  
+  
+    
   plot_program_semesters <- 
     program_pathway_summary %>% 
     ggplot(aes(x = program_abbreviation, y = mean_semesters, fill = program_abbreviation)) +
@@ -1368,28 +1520,7 @@ if(general_pathway_summary_analysis == TRUE){
   
   # print(plot_program_early_departure)
   
-  plot_program_other_origin <- 
-    program_pathway_summary %>% 
-    ggplot(aes(x = program_abbreviation, y = other_origin_grad_prop, fill = program_abbreviation)) +
-    scale_fill_manual(values = program_colors) +
-    # geom_text(aes(label = program_grads), vjust = -1) + # put program size number on plot
-    geom_col(position = "dodge") +
-    ylim(0,.75) +
-    theme_minimal() +
-    labs(x = "Degree Program", 
-         y = "Proportion of total", 
-         #title = "Undeclared pathways to CoE majors"
-         ) +
-    annotate("text", x = 0.5, y = 0.7,
-             label = "Intra-CoE Program Transfer Pathways",
-             hjust = 0, vjust = 1, size = 6, fontface = "bold") +
-    annotate("text", x = 0.5, y = 0.62,
-             label = "Bars indicate proportion of graduates from each program\nwho originally started in a different CoE program",
-             hjust = 0, vjust = 1, lineheight = 0.9) +
-    guides(fill = "none") # turn off legend
 
-  
-  # print(plot_program_other_origin)
   
   
   # combine all into a single figure    
@@ -1413,28 +1544,6 @@ if(general_pathway_summary_analysis == TRUE){
   #     }
   #   print(combined_plot_program_summaries)
   
-# plot of origins of programs' students
-  plot_program_size_comparison <- 
-    plot_program_size_comparison +
-    theme(plot.title = element_blank(),
-          axis.title.x = element_blank()
-          #axis.text.x = element_blank(),
-          #axis.ticks.x = element_blank()
-          )
-  
-  plot_program_undeclared_start <- 
-    plot_program_undeclared_start +
-    theme(plot.title = element_blank(),
-          axis.title.x = element_blank()
-          #axis.text.x = element_blank(),
-          #axis.ticks.x = element_blank()
-          )
-  
-  combined_plot_origin_stories <- 
-    plot_program_size_comparison/ plot_program_undeclared_start / plot_program_other_origin
-    # plot_annotation(title = "Origins of students based on program")
-    
-  
-  print(combined_plot_origin_stories)
+
 
 }
