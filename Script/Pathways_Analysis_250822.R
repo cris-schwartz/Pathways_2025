@@ -1481,7 +1481,7 @@ if(general_pathway_summary_analysis == TRUE){
   
   print(combined_plot_outcomes_stories)
   
-  
+  # assemble plots showing CoE duration pathways
     
   plot_program_semesters <- 
     program_pathway_summary %>% 
@@ -1491,7 +1491,19 @@ if(general_pathway_summary_analysis == TRUE){
     # ylim(0,.5) +
     theme_minimal() +
     labs(x = NULL, y = "Mean number of semesters spent in CoE") +
-    guides(fill = "none") # turn off legend
+    guides(fill = "none") + # turn off legend
+    labs(x = "Degree Program", 
+       y = "Number of semesters", 
+       title = "Mean number of CoE semesters for students starting in each program") +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
+    annotate("text", x = 0.5, y = 8,
+             label = "Mean Number of CoE Semesters",
+             hjust = 0, vjust = 1, size = 6, fontface = "bold") +
+    annotate("text", x = 0.5, y = 7.4,
+             label = paste("Bars indicate the mean number of semesters in CoE spent by all students who started in each program"),
+             hjust = 0, vjust = 1, lineheight = 0.9)    
+  
   
   # print(plot_program_semesters)
   
@@ -1503,7 +1515,19 @@ if(general_pathway_summary_analysis == TRUE){
     ylim(0,4) +
     theme_minimal() +
     labs(x = NULL, y = "Mean first semester GPA") +
-    guides(fill = "none") # turn off legend
+    guides(fill = "none") + # turn off legend
+    labs(x = "Degree Program", 
+       y = "Mean Grade Point Average", 
+       title = "Mean first semester GPA for students in each program") +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
+    annotate("text", x = 0.5, y = 4,
+             label = "First-Semester GPA",
+             hjust = 0, vjust = 1, size = 6, fontface = "bold") +
+    annotate("text", x = 0.5, y = 3.7,
+             label = paste("Bars indicate the mean first-semester GPA earned by all students who started in each program"),
+             hjust = 0, vjust = 1, lineheight = 0.9)
+  
   
   # print(plot_program_first_gpa)
   
@@ -1513,36 +1537,57 @@ if(general_pathway_summary_analysis == TRUE){
     scale_fill_manual(values = program_colors) +
     geom_col(position = "dodge") +
     theme_minimal() +
+    ylim(0,0.22) +
     scale_y_continuous(sec.axis = sec_axis(~ . *16, name = "first semester GPA")) +
-    geom_point(aes(y = departure_gpa/16)) +
+    geom_point(aes(y = departure_gpa/16), size = 5) +
     labs(x = NULL, y = "Proportion of students who left CoE within their first two semesters") +
-    guides(fill = "none") # turn off legend
+    guides(fill = "none") + # turn off legend
+    labs(x = "Degree Program", 
+       y = "Proportion of total", 
+       title = "Proportion of students who left CoE within their first two semesters") +
+    theme(panel.grid.major.x = element_blank(),
+          panel.grid.minor.x = element_blank()) +
+    annotate("text", x = 0.5, y = 0.2,
+             label = "Early Departure from CoE",
+             hjust = 0, vjust = 1, size = 6, fontface = "bold") +
+    annotate("text", x = 0.5, y = 0.185,
+             label = paste("Bars indicate the proportion of students who left each program",
+                           "\nwithin their first two semesters.",
+                           "\nDots indicate mean first semester GPA of these students"),
+             hjust = 0, vjust = 1, lineheight = 0.9)
+  
   
   # print(plot_program_early_departure)
   
-
+  # Assembled plot of student duration in programs
+  plot_program_semesters <- 
+    plot_program_semesters +
+    theme(plot.title = element_blank(),
+          axis.title.x = element_blank()
+          #axis.text.x = element_blank(),
+          #axis.ticks.x = element_blank()
+    )
+  
+  plot_program_first_gpa <- 
+    plot_program_first_gpa +
+    theme(plot.title = element_blank(),
+          axis.title.x = element_blank()
+          #axis.text.x = element_blank(),
+          #axis.ticks.x = element_blank()
+    )
+  
+  plot_program_early_departure <- 
+    plot_program_early_departure + 
+    theme(plot.title = element_blank())
+  
+  combined_plot_origin_stories <- 
+    plot_program_semesters/ plot_program_first_gpa / plot_program_early_departure
+  # plot_annotation(title = "Origins of students based on program")
+  
+  print(combined_plot_origin_stories)
   
   
-  # combine all into a single figure    
-  # combined_plot_program_summaries <- 
-  #   plot_program_undeclared_start + plot_program_major_completion + plot_program_other_major +
-  #     plot_program_non_coe_grad + plot_program_no_degree + plot_program_semesters + 
-  #     plot_program_first_gpa + plot_program_early_departure + plot_program_other_origin +
-  #     # plot_layout(ncol = 3) +
-  #     plot_annotation(title = "Degree program pathway summaries") &
-  #   theme(axis.title.x = element_blank(),
-  #         axis.text.x = element_blank(),
-  #         axis.ticks.x = element_blank())
-  # 
-  # 
-  #   for (panel in 7:9) {
-  #     combined_plot_program_summaries[[panel]] <-
-  #       combined_plot_program_summaries[[panel]] +
-  #         theme(axis.title = element_text(),
-  #           axis.text.x = element_text(),
-  #           axis.ticks.x = element_line())
-  #     }
-  #   print(combined_plot_program_summaries)
+ 
   
 
 
