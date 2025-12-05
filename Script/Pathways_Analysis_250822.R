@@ -1081,7 +1081,7 @@ if(undeclared_pathway_history_analysis == TRUE){
   }
 
 # STUDY OF THE GENERAL PATHWAYS SUMMARIES BY MAJOR ####
-general_pathway_summary_analysis = TRUE # set switch to run analysis
+general_pathway_summary_analysis = FALSE # set switch to run analysis
 if(general_pathway_summary_analysis == TRUE){
   # set up a loop to create summary table major-by-major
   outcome_resolved_first_major <- # process the data to get ready for summaries by major
