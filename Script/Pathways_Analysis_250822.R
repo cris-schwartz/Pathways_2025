@@ -1630,9 +1630,44 @@ if(general_pathway_summary_analysis == TRUE){
   
   print(combined_plot_origin_stories)
   
-  
+  # Sankey general pathways plot
+  plot_sankey_pathways_general = TRUE
+  if (plot_sankey_pathways_general == TRUE){
+    pathways_general_wide <- # collect all information needed for sankey
+      outcome_resolved_first_major %>% 
+      mutate(student_origin = case_when( # determine CoE entry history
+        (admission_type == "Direct from HS" & start_status_isu == "CoE") ~ "Engineering",
+        (start_status_isu != "CoE") ~ "Other ISU College",
+        (admission_type == "Transfer" & start_status_isu == "CoE") ~ "Transfer"
+      )) %>% 
+      mutate(major_first = if_else( # identify never declareds
+        is.na(major_first),"z_Never Declared",major_first
+      )) %>% 
+      mutate(program_outcome = if_else( # identify specific CoE degree program
+        (grad_status_dataset == "Engineering Degree"), graduated_program, grad_status_dataset
+      ))
+    
+    pathways_general_long <- 
+      pathways_general_wide %>% 
+      make_long(student_origin, undeclared_start, major_first, program_outcome)
+    
+    plot_general_pathways_sankey <- 
+      pathways_general_long %>% 
+      ggplot(aes(x = x, next_x = next_x, node = node, next_node = next_node, fill = node)) +
+      geom_sankey(flow.alpha = .8, node.color = 'gray90', show.legend = FALSE) +
+      geom_sankey_label(aes(label = node), size = 3, color = 'black', fill = 'gray90') +
+        theme_minimal() +
+        theme(legend.position = 'none') +
+        theme(axis.text.y = element_blank(),
+              axis.ticks = element_blank(),
+              panel.grid = element_blank()) +
+        scale_x_discrete(labels = c("origin","Undeclared Start","first major","degree outcome"))
+      #   labs(x = "Semester of Study at ISU (based on semester when began in Engineering Undeclared)")
+    
+    print(plot_general_pathways_sankey)
+    }
  
   
 
 
-}
+  }
