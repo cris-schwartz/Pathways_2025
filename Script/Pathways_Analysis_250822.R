@@ -36,6 +36,11 @@ pathway_summary <-
 outcome_resolved <- # identify students who have a resolved degree status
   pathway_summary %>% 
   filter(degree_outcome != 'Undetermined') 
+
+start_semester_analysis_cutoff = 11 # indicate earliest admission semester for analysis
+outcome_resolved <- 
+  outcome_resolved %>% 
+  filter(admsn_sem_id >= start_semester_analysis_cutoff)
   
 # OVERVIEW ANALYSIS OF UNDECLARED STUDENTS ####
 started_undeclared <- 
