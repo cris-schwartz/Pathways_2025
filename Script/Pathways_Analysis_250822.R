@@ -19,6 +19,7 @@ library(tidygraph)
 library(ggraph)
 if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # install sankey package
 library(ggsankey)
+library(ggsankeyfier)
 
 # LOAD AND PREPARE DATA ------------------------------------
 pathway_summary <- # import the previously prepared pathway_summary csv file
@@ -781,6 +782,8 @@ if(undeclared_pathway_history_analysis == TRUE){
       (step4 == 'S1U:S2U:S3U:GN') ~ 'non-CoE Degree .'
     )) 
 
+  tree_plot_visualizations = FALSE # set a switch if tree graph visualizations are desired
+  if(tree_plot_visualizations == TRUE) {
   tree_structure_pathways_undeclared <- 
     pathways_undeclared_steps %>% 
     pivot_longer(cols = starts_with("step"), names_to = "step_index", values_to = "state") %>%    # rows by student-semester
@@ -853,12 +856,15 @@ if(undeclared_pathway_history_analysis == TRUE){
     labs(y = "Progression by semester of study at ISU (first semester is when student entered Engineering Undeclared)") +
     theme(plot.margin = margin(20, 80, 20, 80, "pt")) # pad the margins so that node labels not clipped when plotted
   
-  # print(plot_tree_graph_pathways_undeclared_gpa_change)
+  print(plot_tree_graph_pathways_undeclared_gpa_change)
 
   # print(plot_tree_graph_pathways_undeclared_first_sem_gpa / plot_tree_graph_pathways_undeclared_gpa_change + # combine into single figure
   #         plot_layout(axes = "collect", guides = "collect") +
   #         plot_annotation(title = "Pathways of CoE Students who Started Undeclared 2015 - 2024"))
+  }
   
+  ggsankey_plot_visualizations = FALSE # set a switch for ggsankey style visualizations of undeclared
+  if(ggsankey_plot_visualizations == TRUE) {
   sankey_structure_pathways_undeclared <- # duplicate the tree layout using a Sankey
     pathways_undeclared %>% 
     separate(col = pathway_history, into = c("step1", "step2", "step3", "step4"), sep = ":") %>%   # prep for network visualization
@@ -1041,7 +1047,7 @@ if(undeclared_pathway_history_analysis == TRUE){
     scale_x_discrete(labels = c("","major declared","final outcome")) +
     labs(x = "Pathways of Students who spent ONE semester in Undeclared Engineering")
   
-  print(plot_sankey_undeclareds_one)
+  # print(plot_sankey_undeclareds_one)
   
   undeclareds_two_semester <- 
     declaration_time_pathway %>% 
@@ -1072,16 +1078,54 @@ if(undeclared_pathway_history_analysis == TRUE){
     scale_x_discrete(labels = c("","major declared","final outcome")) +
     labs(x = "Pathways of Students who spent TWO semesters in Undeclared Engineering")
   
-  print(plot_sankey_undeclareds_two)
+  # print(plot_sankey_undeclareds_two)
+  }
   
-  # print(plot_sankey_undeclareds_one + plot_sankey_undeclareds_two + # combine into single figure
-  #         plot_layout(axes = "collect", guides = "collect") +
-  #         plot_annotation(title = "Pathways of Undeclared students based on number of undeclared semesters"))
+  ggsankeyfier_plot_visualizations = TRUE # switch for the ggsankeyfier style visualizations
+  if(ggsankeyfier_plot_visualizations == TRUE) {
+    pathways_undeclared_steps_simplified <- # create simplified pathways history for ggsankeyfier package
+      pathways_undeclared %>% 
+      mutate(history_copy = pathway_history) %>% # duplicate the column to retain original
+      separate(col = history_copy, into = c("step1", "step2", "step3", "step4"), sep = ":") %>%    # prep for network visualization
+      mutate(step2 = str_c(step1, step2, sep = ":")) %>% 
+      mutate(step3 = str_c(step2, step3, sep = ":")) %>% 
+      mutate(step4 = str_c(step3, step4, sep = ":")) %>% 
+      mutate(step3 = if_else(
+      (str_detect(step2,'D')),NA,step3)) %>% 
+      mutate(step4 = if_else(
+        (str_detect(step3,'D') | is.na(step3)),NA,step4)) %>% 
+      mutate(headcount = 1)  # create a tally row for ggsankeyfier summation of individuals
+
+    undeclared_steps_long <- 
+      pathways_undeclared_steps_simplified %>% 
+      pivot_stages_longer(stages_from = c("step1", "step2", "step3", "step4"),
+                          values_from = "headcount",
+                          additional_aes_from = "degree_outcome")
+
+    pos <- position_sankey(split_nodes = TRUE, align = "center",
+                           width = 0.2, v_space = 50, h_space = 0)
+    
+    plot_sankeyfier_object <- 
+      undeclared_steps_long %>% 
+      ggplot(aes(x = stage, y = headcount, group = node,
+                      edge_id = edge_id, connector = connector)) +
+      # geom_sankeyedge(aes(fill = degree_outcome), position = pos) +
+      # geom_sankeynode(aes(fill = degree_outcome), position = pos) 
+      geom_sankeyedge(position = pos) +
+      geom_sankeynode(position = pos) 
+      # guides(fill   = guide_legend(ncol = 1),
+      #        alpha  = guide_legend(ncol = 1),
+      #        colour = guide_legend(ncol = 1)) +
+      # theme(legend.position = "top")
+    
+    print(plot_sankeyfier_object)
+    
+    }
   
   }
 
 # STUDY OF THE GENERAL PATHWAYS SUMMARIES BY MAJOR ####
-general_pathway_summary_analysis = FALSE # set switch to run analysis
+general_pathway_summary_analysis = TRUE # set switch to run analysis
 if(general_pathway_summary_analysis == TRUE){
   # set up a loop to create summary table major-by-major
   outcome_resolved_first_major <- # process the data to get ready for summaries by major
