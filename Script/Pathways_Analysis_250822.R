@@ -71,7 +71,7 @@ declared_starts <- # identify those who started with a declared CoE major
   filter(undeclared_start == 0)
 
 # ANALYSIS OF STUDENTS WHO NEVER DECLARED COE MAJOR ####
-never_declared_analysis = FALSE # set a switch to run the analysis
+never_declared_analysis = TRUE # set a switch to run the analysis
 if (never_declared_analysis == TRUE) {
 # Comparison of never declared to started declared cohorts and outcomes
 outcome_resolved_never_declared_grouping <- 
@@ -568,7 +568,7 @@ never_declared_duration_comparison <- # compare degree completion time with twin
 }
 
 # STUDY OF COE DURATION AND DEGREE OUTCOME FOR UNDECLARED STARTS ####
-outcomes_duration_analysis = FALSE # set switch to run analysis
+outcomes_duration_analysis = TRUE # set switch to run analysis
 if (outcomes_duration_analysis == TRUE){
 outcomes_duration_normalized <- # structure data to plot results vs. number of semesters in CoE
   outcome_resolved %>% 
@@ -676,7 +676,7 @@ print(plot_isu_degree_outcome_by_coe_duration + plot_coe_degree_outcome_by_coe_d
 }
 
 # STUDY OF THE PATHWAYS HISTORY OF UNDECLARED STARTS ####
-undeclared_pathway_history_analysis = FALSE # set switch to run analysis
+undeclared_pathway_history_analysis = TRUE # set switch to run analysis
 if(undeclared_pathway_history_analysis == TRUE){
   outcome_resolved_pathway <- 
     outcome_resolved %>% 
