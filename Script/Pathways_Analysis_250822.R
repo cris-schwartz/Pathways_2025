@@ -41,6 +41,11 @@ start_semester_analysis_cutoff = 1 # indicate earliest admission semester for an
 outcome_resolved <- 
   outcome_resolved %>% 
   filter(admsn_sem_id >= start_semester_analysis_cutoff)
+
+latest_start_semester_analysis_cutoff = 14 # indicate latest admission semester to be included in analysis
+outcome_resolved <-  
+  outcome_resolved %>% 
+  filter(admsn_sem_id <= latest_start_semester_analysis_cutoff)
   
 # OVERVIEW ANALYSIS OF UNDECLARED STUDENTS ####
 started_undeclared <- 
@@ -71,7 +76,7 @@ declared_starts <- # identify those who started with a declared CoE major
   filter(undeclared_start == 0)
 
 # ANALYSIS OF STUDENTS WHO NEVER DECLARED COE MAJOR ####
-never_declared_analysis = TRUE # set a switch to run the analysis
+never_declared_analysis = FALSE # set a switch to run the analysis
 if (never_declared_analysis == TRUE) {
 # Comparison of never declared to started declared cohorts and outcomes
 outcome_resolved_never_declared_grouping <- 
@@ -568,7 +573,7 @@ never_declared_duration_comparison <- # compare degree completion time with twin
 }
 
 # STUDY OF COE DURATION AND DEGREE OUTCOME FOR UNDECLARED STARTS ####
-outcomes_duration_analysis = TRUE # set switch to run analysis
+outcomes_duration_analysis = FALSE # set switch to run analysis
 if (outcomes_duration_analysis == TRUE){
 outcomes_duration_normalized <- # structure data to plot results vs. number of semesters in CoE
   outcome_resolved %>% 
@@ -676,7 +681,7 @@ print(plot_isu_degree_outcome_by_coe_duration + plot_coe_degree_outcome_by_coe_d
 }
 
 # STUDY OF THE PATHWAYS HISTORY OF UNDECLARED STARTS ####
-undeclared_pathway_history_analysis = TRUE # set switch to run analysis
+undeclared_pathway_history_analysis = FALSE # set switch to run analysis
 if(undeclared_pathway_history_analysis == TRUE){
   outcome_resolved_pathway <- 
     outcome_resolved %>% 
@@ -1000,7 +1005,7 @@ if(undeclared_pathway_history_analysis == TRUE){
     labs(fill = "Degree Outcome") +
     theme_minimal()
   
-  # print(plot_declaration_time_outcome)
+  print(plot_declaration_time_outcome)
   
   # analysis of CoE majors and degree outcomes plotted by duration in undeclared
   declaration_time_pathway <- # identify pathways steps for undeclared starts
@@ -1646,15 +1651,47 @@ if(general_pathway_summary_analysis == TRUE){
         (admission_type == "Transfer" & start_status_isu == "CoE") ~ "Transfer"
       )) %>% 
       mutate(major_first = if_else( # identify never declareds
-        is.na(major_first),"z_Never Declared",major_first
+        is.na(major_first),"Never Declared",major_first
       )) %>% 
       mutate(program_outcome = if_else( # identify specific CoE degree program
         (grad_status_dataset == "Engineering Degree"), graduated_program, grad_status_dataset
-      ))
+      )) %>% 
+      mutate(undeclared_start = as.factor(if_else( # recode to provide clearer label for plot
+        (undeclared_start == 0), "Started in Major", "Started Undeclared"
+      )))
+    
+    desired_sankey_order <- 
+      c("Aerospace Engineering",
+        "Agricultural Engineering",
+        "Biological Systems Engineering",
+        "Chemical Engineering",
+        "Civil Engineering",
+        "Computer Engineering",
+        "Construction Engineering",
+        "Cyber Security Engineering",
+        "Electrical Engineering",
+        "Environmental Engineering",
+        "Industrial Engineering",
+        "Materials Engineering",
+        "Mechanical Engineering",
+        "Software Engineering",
+        "Non-Engineering Degree",
+        "No Degree",
+        "Never Declared",
+        "Started in Major",
+        "Started Undeclared",
+        "Other ISU College",
+        "Transfer",
+        "Engineering"
+        )
     
     pathways_general_long <- 
       pathways_general_wide %>% 
-      make_long(student_origin, undeclared_start, major_first, program_outcome)
+      make_long(student_origin, undeclared_start, major_first, program_outcome) %>% 
+      mutate(
+        node = factor(node, levels = rev(desired_sankey_order)),
+        next_node = factor(next_node, levels = rev(desired_sankey_order))
+      ) 
     
     plot_general_pathways_sankey <- 
       pathways_general_long %>% 
@@ -1666,13 +1703,38 @@ if(general_pathway_summary_analysis == TRUE){
         theme(axis.text.y = element_blank(),
               axis.ticks = element_blank(),
               panel.grid = element_blank()) +
-        scale_x_discrete(labels = c("origin","Undeclared Start","first major","degree outcome"))
-      #   labs(x = "Semester of Study at ISU (based on semester when began in Engineering Undeclared)")
+        scale_x_discrete(labels = c("Student Entry to CoE","Start Status","First Declared Major","Degree Outcome")) +
+        scale_fill_manual(values = c(
+          "Aerospace Engineering" = "#4e79a7",
+          "Agricultural Engineering"   = "#A0CBE8",
+          "Biological Systems Engineering"  = "#F28E2B",
+          "Chemical Engineering"  = "#59A14F",
+          "Civil Engineering"   = "#B6992D",
+          "Computer Engineering" = "#F1CE63",
+          "Construction Engineering" = "#D37295",
+          "Cyber Security Engineering" = "#86BCB6",
+          "Electrical Engineering"   = "#E15759",
+          "Environmental Engineering" = "#FF9D9A",
+          "Industrial Engineering"   = "#79706E",
+          "Materials Engineering" = "#499894",
+          "Mechanical Engineering"   = "#B07AA1",
+          "Software Engineering"   = "#9D7660",
+          "Started in Major" = "#E69F00",
+          "Started Undeclared" = "#1f78ff",
+          "Other ISU College" = "#2F4F4F",
+          "Transfer" = "#A45EE5" ,
+          "Engineering" = "#6EDCC4"
+      )) +
+      theme(#plot.title = element_blank(),
+            axis.title.x = element_blank())
+            #axis.text.x = element_blank(),
+            #axis.ticks.x = element_blank()
+        labs(title = "Pathways of Students Starting in the College of Engineering F2015 - F2019")
     
     print(plot_general_pathways_sankey)
     }
  
   
-
+  # "#1f78ff", "#E69F00", "#33A02C"
 
   }
