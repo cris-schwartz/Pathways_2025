@@ -42,7 +42,7 @@ outcome_resolved <-
   outcome_resolved %>% 
   filter(admsn_sem_id >= start_semester_analysis_cutoff)
 
-latest_start_semester_analysis_cutoff = 14 # indicate latest admission semester to be included in analysis
+latest_start_semester_analysis_cutoff = 27 # indicate latest admission semester to be included in analysis
 outcome_resolved <-  
   outcome_resolved %>% 
   filter(admsn_sem_id <= latest_start_semester_analysis_cutoff)
@@ -1646,7 +1646,7 @@ if(general_pathway_summary_analysis == TRUE){
     pathways_general_wide <- # collect all information needed for sankey
       outcome_resolved_first_major %>% 
       mutate(student_origin = case_when( # determine CoE entry history
-        (admission_type == "Direct from HS" & start_status_isu == "CoE") ~ "Engineering",
+        (admission_type == "Direct from HS" & start_status_isu == "CoE") ~ "Direct from High School",
         (start_status_isu != "CoE") ~ "Other ISU College",
         (admission_type == "Transfer" & start_status_isu == "CoE") ~ "Transfer"
       )) %>% 
@@ -1682,7 +1682,7 @@ if(general_pathway_summary_analysis == TRUE){
         "Started Undeclared",
         "Other ISU College",
         "Transfer",
-        "Engineering"
+        "Direct from High School"
         )
     
     pathways_general_long <- 
@@ -1723,18 +1723,13 @@ if(general_pathway_summary_analysis == TRUE){
           "Started Undeclared" = "#1f78ff",
           "Other ISU College" = "#2F4F4F",
           "Transfer" = "#A45EE5" ,
-          "Engineering" = "#6EDCC4"
+          "Direct from High School" = "#6EDCC4"
       )) +
-      theme(#plot.title = element_blank(),
-            axis.title.x = element_blank())
-            #axis.text.x = element_blank(),
-            #axis.ticks.x = element_blank()
-        labs(title = "Pathways of Students Starting in the College of Engineering F2015 - F2019")
+      theme(axis.title.x = element_blank()) +
+      labs(title = "Pathways of Students Starting in the College of Engineering F2015 - S2024")
     
     print(plot_general_pathways_sankey)
     }
  
   
-  # "#1f78ff", "#E69F00", "#33A02C"
-
   }
