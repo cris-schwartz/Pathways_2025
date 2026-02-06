@@ -1,0 +1,37 @@
+---
+title: "Pathways_Analysis_Notebook"
+author: "Cris Schwartz"
+date: "2026-02-06"
+output: html_document
+project: "Pathways_2025"
+---
+
+
+# CLEAR THE ENVIRONMENT --------------------------
+
+The first part of this notebook clears the environment
+```{r}
+rm(list = ls())             ## Clear environment
+
+```
+
+# INSTALL AND LOAD PACKAGES --------------------------------
+
+Here is the list of packages used in the various analyses
+
+
+```{r}
+pacman::p_load(magrittr, pacman, tidyverse,ggforce)
+library(readxl)
+library(MatchIt) # load the library for the Propensity Score Matching
+library(cobalt)
+library(broom)
+library(patchwork)
+library(glue)
+library(ggalluvial)
+library(tidygraph)
+library(ggraph)
+if (!require("ggsankey")) devtools::install_github("davidsjoberg/ggsankey") # install sankey package
+library(ggsankey)
+library(ggsankeyfier)
+```
