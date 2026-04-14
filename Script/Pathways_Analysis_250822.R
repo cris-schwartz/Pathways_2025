@@ -75,6 +75,49 @@ declared_starts <- # identify those who started with a declared CoE major
   outcome_resolved %>% 
   filter(undeclared_start == 0)
 
+# look at overall graduation rates of undeclared start vs declared start
+undeclared_completion_analysis = TRUE # set a switch to run the analysis
+if (undeclared_completion_analysis == TRUE){
+  outcome_resolved_undeclared_status <- 
+    outcome_resolved %>% 
+    mutate(coe_start_status = case_when(
+      (undeclared_start == 1) ~ 'Started as Undeclared',
+      (undeclared_start == 0) ~ 'Started in CoE Major'
+    ))
+
+# set color options
+  options(ggplot2.discrete.fill = c("#1F78ff", "#E69F00"))
+  options(ggplot2.discrete.color = c("#1F78ff", "#E69F00"))
+
+  outcome_resolved_undeclared_status_gpa <- # select students with first semester GPA
+    outcome_resolved_undeclared_status %>% 
+    filter(!is.na(first_sem_gpa))
+  
+  first_semester_withdrawals <- # get counts of students who withdrew in first semester
+    outcome_resolved_undeclared_status %>% 
+    filter(is.na(first_sem_gpa))
+ 
+  plot_undeclared_gpa_comparison <-
+    outcome_resolved_undeclared_status_gpa %>%
+    # filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
+    mutate(coe_start_status = factor(coe_start_status)) %>% # change to factor for counting samples
+    ggplot(aes(x= first_sem_gpa, y = after_stat(density), fill = coe_start_status)) +
+    ylim(0,1) + # set y axis limits from 0 to 1
+    geom_histogram(position = "identity", alpha = 0.5, binwidth = 0.1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(outcome_resolved_undeclared_status_gpa$coe_start_status)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "First Semester GPA", y = "Proportion of Cohort", fill = "CoE Start") + 
+    theme_minimal()
+  
+}
+
+
+
+
 # ANALYSIS OF STUDENTS WHO NEVER DECLARED COE MAJOR ####
 never_declared_analysis = FALSE # set a switch to run the analysis
 if (never_declared_analysis == TRUE) {
@@ -1135,7 +1178,7 @@ if(undeclared_pathway_history_analysis == TRUE){
   }
 
 # STUDY OF THE GENERAL PATHWAYS SUMMARIES BY MAJOR ####
-general_pathway_summary_analysis = TRUE # set switch to run analysis
+general_pathway_summary_analysis = FALSE # set switch to run analysis
 if(general_pathway_summary_analysis == TRUE){
   # set up a loop to create summary table major-by-major
   outcome_resolved_first_major <- # process the data to get ready for summaries by major
