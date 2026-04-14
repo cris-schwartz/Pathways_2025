@@ -113,6 +113,210 @@ if (undeclared_completion_analysis == TRUE){
     labs (x = "First Semester GPA", y = "Proportion of Cohort", fill = "CoE Start") + 
     theme_minimal()
   
+  plot_undeclared_start_status_comparison <- # comparison by what college they were admitted into when started at ISU
+    outcome_resolved_undeclared_status_gpa %>%
+    # filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
+    mutate(coe_start_status = factor(coe_start_status)) %>% # change to factor for counting samples
+    mutate(start_status_isu = factor(start_status_isu)) %>%
+    group_by(coe_start_status, start_status_isu) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    group_by(coe_start_status) %>%
+    mutate(proportion = count/sum(count)) %>%
+    ggplot(aes(x = start_status_isu, y = proportion, fill = coe_start_status)) +
+    ylim(0,1) + # set y axis limits from 0 to 1
+    geom_col(position = "dodge", alpha = 1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(outcome_resolved_undeclared_status_gpa$coe_start_status)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "ISU College of Admittance", y = "Proportion of Cohort", fill = "CoE Start") +
+    theme_minimal()
+  
+  plot_undeclared_sex_comparison <- # comparison of student sex
+    outcome_resolved_undeclared_status_gpa %>%
+    # filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
+    mutate(coe_start_status = factor(coe_start_status)) %>% # change to factor for counting samples
+    mutate(sex = factor(sex)) %>%
+    group_by(coe_start_status, sex) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    group_by(coe_start_status) %>%
+    mutate(proportion = count/sum(count)) %>%
+    ggplot(aes(x = sex, y = proportion, fill = coe_start_status)) +
+    ylim(0,1) + # set y axis limits from 0 to 1
+    geom_col(position = "dodge", alpha = 1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(outcome_resolved_undeclared_status_gpa$coe_start_status)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "Student Sex", y = "Proportion of Cohort", fill = "CoE Start") +
+    theme_minimal()
+  
+  plot_undeclared_ethnicity_comparison <- # comparison of student ethnicity
+    outcome_resolved_undeclared_status_gpa %>%
+    # filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
+    mutate(coe_start_status = factor(coe_start_status)) %>% # change to factor for counting samples
+    mutate(ethnicity = case_when(
+      (ethnicity == "American Indian or Alaska Native") ~ "A.In.",
+      (ethnicity == "Asian") ~ "As.",
+      (ethnicity == "Black or African American") ~ "Af.Am.",
+      (ethnicity == "Hispanic") ~ "His.",
+      (ethnicity == "International") ~ "Int.",
+      (ethnicity == "Native Hawaiian or Other Pacific Islander") ~ "NaHa.",
+      (ethnicity == "Two or more races") ~ "2/mo",
+      (ethnicity == "Unknown race and ethnicity") ~ "Un.",
+      (ethnicity == "White") ~ "Wh."
+    )) %>% 
+    mutate(ethnicity = factor(ethnicity)) %>%
+    group_by(coe_start_status, ethnicity) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    group_by(coe_start_status) %>%
+    mutate(proportion = count/sum(count)) %>%
+    ggplot(aes(x = ethnicity, y = proportion, fill = coe_start_status)) +
+    ylim(0,1) + # set y axis limits from 0 to 1
+    geom_col(position = "dodge", alpha = 1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(outcome_resolved_undeclared_status_gpa$coe_start_status)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "Student Ethnicity", y = "Proportion of Cohort", fill = "CoE Start") +
+    theme_minimal() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1))
+  
+  plot_undeclared_first_gen_comparison <- # comparison of first-generation student status
+    outcome_resolved_undeclared_status_gpa %>%
+    # filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
+    mutate(coe_start_status = factor(coe_start_status)) %>% # change to factor for counting samples
+    mutate(first_generation = factor(first_generation)) %>%
+    group_by(coe_start_status, first_generation) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    group_by(coe_start_status) %>%
+    mutate(proportion = count/sum(count)) %>%
+    filter(first_generation == 1) %>% 
+    ggplot(aes(x = first_generation, y = proportion, fill = coe_start_status)) +
+    ylim(0,1) + # set y axis limits from 0 to 1
+    geom_col(position = "dodge", alpha = 1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(outcome_resolved_undeclared_status_gpa$coe_start_status)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "First Generation Status", y = "Proportion of Cohort", fill = "CoE Start") +
+    scale_x_discrete(labels = NULL) +
+    theme_minimal()
+  
+  plot_undeclared_residency_comparison <- # comparison of residency status
+    outcome_resolved_undeclared_status_gpa %>%
+    # filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
+    mutate(coe_start_status = factor(coe_start_status)) %>% # change to factor for counting samples
+    mutate(residency = factor(residency)) %>%
+    group_by(coe_start_status, residency) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    group_by(coe_start_status) %>%
+    mutate(proportion = count/sum(count)) %>%
+    ggplot(aes(x = residency, y = proportion, fill = coe_start_status)) +
+    ylim(0,1) + # set y axis limits from 0 to 1
+    geom_col(position = "dodge", alpha = 1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(outcome_resolved_undeclared_status_gpa$coe_start_status)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "Residency Status", y = "Proportion of Cohort", fill = "CoE Start") +
+    theme_minimal()
+  
+  plot_undeclared_adm_type_comparison <- # comparison via direct from HS vs. transfer admission
+    outcome_resolved_undeclared_status_gpa %>%
+    # filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
+    mutate(coe_start_status = factor(coe_start_status)) %>% # change to factor for counting samples
+    mutate(admission_type = factor(admission_type)) %>%
+    group_by(coe_start_status, admission_type) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    group_by(coe_start_status) %>%
+    mutate(proportion = count/sum(count)) %>%
+    ggplot(aes(x = admission_type, y = proportion, fill = coe_start_status)) +
+    ylim(0,1) + # set y axis limits from 0 to 1
+    geom_col(position = "dodge", alpha = 1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(outcome_resolved_undeclared_status_gpa$coe_start_status)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "Admission Type", y = "Proportion of Cohort", fill = "CoE Start") +
+    theme_minimal()
+  
+  plot_undeclared_grad_status_comparison <- # comparison of graduation rates
+    outcome_resolved_undeclared_status_gpa %>%
+    # filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
+    mutate(coe_start_status = factor(coe_start_status)) %>% # change to factor for counting samples
+    mutate(degree_outcome = factor(degree_outcome)) %>%
+    group_by(coe_start_status, degree_outcome) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    group_by(coe_start_status) %>%
+    mutate(proportion = count/sum(count)) %>%
+    filter(degree_outcome == 'Degree') %>% 
+    ggplot(aes(x = degree_outcome, y = proportion, fill = coe_start_status)) +
+    ylim(0,1) + # set y axis limits from 0 to 1
+    geom_col(position = "dodge", alpha = 1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(outcome_resolved_undeclared_status_gpa$coe_start_status)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "ISU Degree Completion (any degree)", y = "Proportion who earned degree", fill = "CoE Start") +
+    scale_x_discrete(labels = NULL) +
+    theme_minimal()
+  
+  plot_undeclared_coe_degree_status_comparison <- # comparison of graduation rates
+    outcome_resolved_undeclared_status_gpa %>%
+    # filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
+    mutate(coe_start_status = factor(coe_start_status)) %>% # change to factor for counting samples
+    mutate(degree_outcome = factor(degree_outcome)) %>%
+    mutate(grad_status_dataset = factor(grad_status_dataset)) %>% 
+    group_by(coe_start_status, degree_outcome, grad_status_dataset) %>%
+    summarize(count = n()) %>% 
+    ungroup() %>%
+    group_by(coe_start_status) %>%
+    mutate(proportion = count/sum(count)) %>% 
+    filter(grad_status_dataset == 'Engineering Degree') %>% 
+    ggplot(aes(x = grad_status_dataset, y = proportion, fill = coe_start_status)) +
+    ylim(0,1) + # set y axis limits from 0 to 1
+    geom_col(position = "dodge", alpha = 1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(outcome_resolved_undeclared_status_gpa$coe_start_status)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "Engineering Degree Completion", y = "Proportion who earned Engineering Degree", fill = "CoE Start") +
+    scale_x_discrete(labels = NULL) +
+    theme_minimal()
+  
+  
+  # combine all into a single figure    
+  plot_undeclared_gpa_comparison <- plot_undeclared_gpa_comparison + guides(fill = "none") # turn off legend of gpa plot so patchwork does not count it as different
+  print(plot_undeclared_gpa_comparison + plot_undeclared_start_status_comparison + plot_undeclared_sex_comparison
+        + plot_undeclared_ethnicity_comparison + plot_undeclared_first_gen_comparison +
+          plot_undeclared_residency_comparison + plot_undeclared_adm_type_comparison + 
+          plot_undeclared_grad_status_comparison + guide_area() +
+          plot_layout(ncol = 3, axes = "collect", guides = "collect") +
+          plot_annotation(title = "Comparison of CoE Students based on whether start was in Undeclared Engineering"))
 }
 
 
@@ -153,6 +357,28 @@ plot_gpa_comparison <-
       }
     ) +
     labs (x = "First Semester GPA", y = "Proportion of Cohort", fill = "CoE Start") + 
+    theme_minimal()
+
+  plot_start_status_comparison <- # comparison by what college they were admitted into when started at ISU
+    outcome_resolved_with_gpa %>%
+    filter(!is.na(never_declared_outcome)) %>% # get rid of rows that are not in either group
+    mutate(never_declared_outcome = factor(never_declared_outcome)) %>% # change to factor for counting samples
+    mutate(start_status_isu = factor(start_status_isu)) %>%
+    group_by(never_declared_outcome, start_status_isu) %>%
+    summarize(count = n()) %>%
+    ungroup() %>%
+    group_by(never_declared_outcome) %>%
+    mutate(proportion = count/sum(count)) %>%
+    ggplot(aes(x = start_status_isu, y = proportion, fill = never_declared_outcome)) +
+    ylim(0,1) + # set y axis limits from 0 to 1
+    geom_col(position = "dodge", alpha = 1) +
+    scale_fill_discrete( # calculate sample size to add to legend
+      labels = function(x) { # creates a label entry based on calculation of sample size
+        n_vals <- table(outcome_resolved_with_gpa$never_declared_outcome)
+        paste0(x, " (n = ", n_vals[x], ")")
+      }
+    ) +
+    labs (x = "ISU College of Admittance", y = "Proportion of Cohort", fill = "CoE Start") +
     theme_minimal()
 
 ## This is a template script for column chart with x as a factor variable and y
