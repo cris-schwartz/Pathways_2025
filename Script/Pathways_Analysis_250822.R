@@ -314,7 +314,7 @@ if (undeclared_completion_analysis == TRUE){
   print(plot_undeclared_gpa_comparison + plot_undeclared_start_status_comparison + plot_undeclared_sex_comparison
         + plot_undeclared_ethnicity_comparison + plot_undeclared_first_gen_comparison +
           plot_undeclared_residency_comparison + plot_undeclared_adm_type_comparison + 
-          plot_undeclared_grad_status_comparison + guide_area() +
+          plot_undeclared_coe_degree_status_comparison + guide_area() +
           plot_layout(ncol = 3, axes = "collect", guides = "collect") +
           plot_annotation(title = "Comparison of CoE Students based on whether start was in Undeclared Engineering"))
 }
