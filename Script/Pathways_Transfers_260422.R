@@ -61,12 +61,12 @@ program_colors <- setNames(program_list$program_plot_color, program_list$program
 # get same color in each plot
 
 
-# CALCULATE TRANSFERS IN AND OUT BY EACH MAJOR --------------
+# K-CUT ANALYSIS --------------
 # Most of this section was generated using Claude Sonnet 4.6
 # Minimum K-cut optimization using Integer Linear Programming
 # Partition N = 14 majors into K groups. Start with K = 4
 # to see the best partitioning to minimize transfers in/out of each group
-k_cut_analysis = TRUE
+k_cut_analysis = FALSE
 if (k_cut_analysis == TRUE) {
 majors <- program_list$program_name # extract the vector of program names
 N = length(majors) # total number of majors
@@ -217,4 +217,26 @@ colnames(flow_between_groups) <- paste0("Group ", 1:K)
 cat("\n=== INTER-GROUP FLOW MATRIX (directed) ===\n")
 print(flow_between_groups)
 cat("(Diagonal = within-group flow; off-diagonal = cross-group flow)\n")
+}
+
+
+# VISUALIZE TRANSFER FLOWS -----------------------------------
+tree_plot_visualization = TRUE
+if (tree_plot_visualization == TRUE){
+  tree_edges_graph <- 
+    transfer_flows %>% 
+    rename(from = major_first, to = major_second)
+  
+  tree_graph_transfers <- 
+    tbl_graph(
+      nodes = NULL,
+      edges = tree_edges_graph,
+      directed = TRUE)
+
+  plot_tree_graph_transfers <- 
+    tree_graph_transfers %>% 
+    ggraph(layout = "kk") +
+    geom_edge_diagonal(aes(edge_width = totals))
+  
+  print(plot_tree_graph_transfers)
 }
