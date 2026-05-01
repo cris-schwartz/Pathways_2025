@@ -260,4 +260,18 @@ if (tree_plot_visualization == TRUE){
   
   print(plot_tree_graph_transfers)
 
+  transfers_out <- 
+    transfer_flows %>% 
+    group_by(major_first) %>% 
+    summarize(net_out = sum(totals))
+  
+  transfers_in <- 
+    transfer_flows %>% 
+    group_by(major_second) %>% 
+    summarize(net_in = sum(totals))
+  
+  net_transfers <- 
+    left_join(transfers_out, transfers_in, by = c('major_first' = 'major_second')) %>% 
+    mutate(net_transfers_in = net_in - net_out)
+  
 }
