@@ -60,7 +60,16 @@ program_list <-  tibble(program_name = c("Aerospace Engineering", "Agricultural 
 program_colors <- setNames(program_list$program_plot_color, program_list$program_abbreviation) # ensure programs
 # get same color in each plot
 
-
+transfer_flows <- 
+  transfer_flows %>% 
+  left_join(.,program_list, by = c('major_first' = 'program_name'), keep = FALSE) %>% 
+  mutate(major_first = program_abbreviation) %>% 
+  select(!(program_abbreviation)) %>% 
+  left_join(.,program_list, by = c('major_second' = 'program_name'), keep = FALSE) %>% 
+  mutate(major_second = program_abbreviation) %>% 
+  select(!c(program_abbreviation,program_plot_color.y)) %>% 
+  rename(program_plot_color = program_plot_color.x)
+  
 # K-CUT ANALYSIS --------------
 # Most of this section was generated using Claude Sonnet 4.6
 # Minimum K-cut optimization using Integer Linear Programming
@@ -229,14 +238,26 @@ if (tree_plot_visualization == TRUE){
   
   tree_graph_transfers <- 
     tbl_graph(
-      nodes = NULL,
       edges = tree_edges_graph,
       directed = TRUE)
 
   plot_tree_graph_transfers <- 
     tree_graph_transfers %>% 
-    ggraph(layout = "kk") +
-    geom_edge_diagonal(aes(edge_width = totals))
+    ggraph(layout = "linear", circular = TRUE) +
+    geom_edge_diagonal(aes(edge_width = totals, color = program_plot_color),
+                       arrow = arrow(length = unit(4, 'mm')),
+                       end_cap = circle (2, 'mm'),
+                       alpha = 0.8)+
+    scale_edge_color_identity() +
+    geom_node_label(aes(label = name)) +
+    # theme_minimal() +
+    # theme_no_axes() +
+    theme_graph(base_family = "") +
+    theme(plot.title = element_text(size = 16)) +
+    scale_edge_width(guide = "none") +
+    labs(title = "CoE Transfers Between Programs 2015 - 2024")
+ 
   
   print(plot_tree_graph_transfers)
+
 }
