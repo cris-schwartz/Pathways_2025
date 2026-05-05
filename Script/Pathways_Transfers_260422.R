@@ -235,29 +235,43 @@ if (tree_plot_visualization == TRUE){
   tree_edges_graph <- 
     transfer_flows %>% 
     rename(from = major_first, to = major_second)
+
+  color_lookup <- 
+    tree_edges_graph %>% 
+    distinct(name = from, program_plot_color)
   
+  node_attrs <- 
+    tibble(
+      name = unique(c(tree_edges_graph$from, tree_edges_graph$to))) %>% 
+    left_join(color_lookup, by = "name")
+ 
+   
   tree_graph_transfers <- 
     tbl_graph(
+      nodes = node_attrs,
       edges = tree_edges_graph,
       directed = TRUE)
+  
 
-  plot_tree_graph_transfers <- 
-    tree_graph_transfers %>% 
+
+  plot_tree_graph_transfers <-
+    tree_graph_transfers %>%
     ggraph(layout = "linear", circular = TRUE) +
-    geom_edge_diagonal(aes(edge_width = totals, color = program_plot_color),
-                       arrow = arrow(length = unit(4, 'mm')),
-                       end_cap = circle (2, 'mm'),
-                       alpha = 0.8)+
+    geom_edge_diagonal(aes(edge_width = totals,
+                           color = program_plot_color,
+                           alpha = after_stat(index))) +
     scale_edge_color_identity() +
-    geom_node_label(aes(label = name)) +
-    # theme_minimal() +
-    # theme_no_axes() +
+    scale_edge_alpha(range = c(0.1, 0.9), guide = 'none') +
+    geom_node_label(aes(label = name,
+                        fill = program_plot_color),
+                    alpha = 0.8) +
+    scale_fill_identity() +
     theme_graph(base_family = "") +
     theme(plot.title = element_text(size = 16)) +
     scale_edge_width(guide = "none") +
     labs(title = "CoE Transfers Between Programs 2015 - 2024")
- 
-  
+
+
   print(plot_tree_graph_transfers)
 
   transfers_out <- 
