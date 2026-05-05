@@ -288,4 +288,14 @@ if (tree_plot_visualization == TRUE){
     left_join(transfers_out, transfers_in, by = c('major_first' = 'major_second')) %>% 
     mutate(net_transfers_in = net_in - net_out)
   
+  transfer_matrix <- 
+    transfer_flows %>% 
+    pivot_wider(names_from = major_second, values_from = totals) %>% 
+    arrange(major_first) %>% 
+    # select(!program_plot_color) %>%
+    select(major_first, sort(setdiff(names(.), "major_first"))) %>% 
+    select(!program_plot_color) %>% 
+    mutate(across(everything(), \(x) replace_na(x, 0)))
+
+           
 }
