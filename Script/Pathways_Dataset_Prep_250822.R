@@ -157,6 +157,27 @@ transfer_details <- # pull out transfer history data
   distinct(study_id, .keep_all = TRUE) %>% # remove all but first row for each study_id
   ungroup
 
+# DETERMINATION OF COE SEMESTERS BEFORE CHANGE OF COE MAJOR ------------
+semester_of_transfer <- # determine the semester the decision was made to change majors
+  processed_data %>% 
+  arrange(study_id, sem_sequence_id) %>% 
+  group_by(study_id) %>% 
+  select(study_id, major_current, sem_sequence_id, coe_sem_start) %>% 
+  mutate(transfer_dec_sem = if_else( #determine the semester when transfer decision was made
+    (sem_sequence_id >= coe_sem_start),row_number() - 1,0 # semesters in undeclared are counted
+    )) %>% 
+  ungroup() %>%
+  group_by(study_id) %>%
+  arrange(study_id, sem_sequence_id) %>% 
+  mutate(major_first = first(major_current)) %>% # log the first major
+  distinct(study_id, major_current, .keep_all = TRUE) %>% # elmininate all duplicate student-major semester records
+  filter(major_current != 'Undeclared Engineering') %>%  # eliminate all rows of students still in undeclared
+  mutate(record_count = n()) %>% # count number of distinct rows for each student
+  filter(record_count > 1) %>%  # filter out students who did not transfer
+  filter(major_current == nth(major_current,2))
+  
+
+
 # SUMMARY OF DATA BY STUDENT -----------------------
 pathway_summary <- # summarize records to single row per student
   processed_data %>% 
