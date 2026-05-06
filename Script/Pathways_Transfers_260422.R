@@ -26,6 +26,11 @@ pathway_summary <- # import the previously prepared pathway_summary csv file
   read_csv("./Data/Resolved_Students_Major_Pathways_260422.csv", guess_max = 1000) %>% # guess_max ensures empty rows not treated as logical values 
   as_tibble()
 
+transfer_timing <- # import the previously prepared transfer decision timing file
+  read_csv("./Data/Transfer_decision_semester.csv", guess_max = 1000) %>% 
+  as_tibble() %>% 
+  select(c(study_id,transfer_dec_sem)) # select only the key column and the transfer decision timing
+
 
 # CALCULATE TRANSFERS IN AND OUT BY EACH MAJOR --------------
 graduates_with_transfers <- # select only students who earned CoE degree and changed CoE major
@@ -33,7 +38,8 @@ graduates_with_transfers <- # select only students who earned CoE degree and cha
   filter(major_changes != 0, grad_status_dataset == 'Engineering Degree') %>% 
   mutate(major_second = if_else( # correct any intermediate transfers to undeclared
     (major_second == 'Undeclared Engineering'), major_third, major_second
-  ))
+  )) %>% 
+  left_join(.,transfer_timing, by = 'study_id') # add the transfer decision timing data
 
 transfer_flows <- # determine the numbers of transfers along each major combination
   graduates_with_transfers %>% 
@@ -299,3 +305,12 @@ if (tree_plot_visualization == TRUE){
 
            
 }
+
+# ANALYZE TRANSFER DECISION TIMING---------------------
+
+transfer_time_summary <- 
+  graduates_with_transfers %>% 
+  group_by(major_first, major_second) %>% 
+  summarize(totals = n(), mean_dec_sem = median(transfer_dec_sem)) 
+  
+
