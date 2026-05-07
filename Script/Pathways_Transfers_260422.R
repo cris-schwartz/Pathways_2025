@@ -41,6 +41,12 @@ graduates_with_transfers <- # select only students who earned CoE degree and cha
   )) %>% 
   left_join(.,transfer_timing, by = 'study_id') # add the transfer decision timing data
 
+# CHECK THE FOLLOWING BLOCK TO PROPERLY SET THE POPULATION TO BE INCLUDED
+graduates_with_transfers <- # establish appropriate population
+  graduates_with_transfers %>% 
+  # filter(undeclared_start == 1) # look at only undeclared starts
+  filter(undeclared_start == 0) # look at only declared starts
+
 transfer_flows <- # determine the numbers of transfers along each major combination
   graduates_with_transfers %>% 
   group_by(major_first, major_second) %>% 
@@ -238,6 +244,7 @@ cat("(Diagonal = within-group flow; off-diagonal = cross-group flow)\n")
 # VISUALIZE TRANSFER FLOWS -----------------------------------
 tree_plot_visualization = TRUE
 if (tree_plot_visualization == TRUE){
+
   tree_edges_graph <- 
     transfer_flows %>% 
     rename(from = major_first, to = major_second)
@@ -275,7 +282,9 @@ if (tree_plot_visualization == TRUE){
     theme_graph(base_family = "") +
     theme(plot.title = element_text(size = 16)) +
     scale_edge_width(guide = "none") +
-    labs(title = "CoE Transfers Between Programs 2015 - 2024")
+    # labs(title = "CoE Transfers Between Programs 2015 - 2024")
+    # labs(title = "CoE Program Transfers after starting in Undeclared 2015 - 2024")
+    labs(title = "CoE Program Transfers for students starting as decalred 2015 - 2024")
 
 
   print(plot_tree_graph_transfers)
