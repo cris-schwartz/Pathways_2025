@@ -43,9 +43,10 @@ graduates_with_transfers <- # select only students who earned CoE degree and cha
 
 # CHECK THE FOLLOWING BLOCK TO PROPERLY SET THE POPULATION TO BE INCLUDED
 graduates_with_transfers <- # establish appropriate population
-  graduates_with_transfers %>% 
+  graduates_with_transfers  #%>% #insert one of the following lines if filtering 
   # filter(undeclared_start == 1) # look at only undeclared starts
-  filter(undeclared_start == 0) # look at only declared starts
+  # filter(undeclared_start == 0) # look at only declared starts
+  
 
 transfer_flows <- # determine the numbers of transfers along each major combination
   graduates_with_transfers %>% 
@@ -317,9 +318,31 @@ if (tree_plot_visualization == TRUE){
 
 # ANALYZE TRANSFER DECISION TIMING---------------------
 
-transfer_time_summary <- 
+graduates_with_transfers_short <- # convert full major names to abbreviations
   graduates_with_transfers %>% 
+  left_join(.,program_list, by = c('major_first' = 'program_name'), keep = FALSE) %>% 
+  mutate(major_first = program_abbreviation) %>% 
+  select(!program_abbreviation) %>% 
+  left_join(.,program_list, by = c('major_second' = 'program_name'), keep = FALSE) %>% 
+  mutate(major_second = program_abbreviation) %>% 
+  select(major_first, major_second, transfer_dec_sem, first_sem_gpa, final_coe_gpa)
+
+transfer_time_summary <- # get summary of median semester of transfer decision
+  graduates_with_transfers_short %>% 
   group_by(major_first, major_second) %>% 
   summarize(totals = n(), mean_dec_sem = median(transfer_dec_sem)) 
+
+
+transfer_time_matrix <- # put in matrix form
+  transfer_time_summary %>% 
+  select(!totals) %>% 
+  pivot_wider(names_from = major_second, values_from = mean_dec_sem) %>% 
+  arrange(major_first) %>% 
+  select(major_first, sort(setdiff(names(.), "major_first")))
   
+transfer_gpa_summary <- 
+  graduates_with_transfers_short %>% 
+  group_by(major_first, major_second) %>% 
+  summarize(totals = n(), start_gpa = mean(first_sem_gpa), end_gpa = mean(final_coe_gpa))
+
 
