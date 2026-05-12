@@ -41,6 +41,10 @@ graduates_with_transfers <- # select only students who earned CoE degree and cha
   )) %>% 
   left_join(.,transfer_timing, by = 'study_id') # add the transfer decision timing data
 
+graduates_no_transfers <- # select students who earned CoE degree and stayed in original major
+  pathway_summary %>% 
+  filter(major_changes == 0, grad_status_dataset == 'Engineering Degree')
+
 # CHECK THE FOLLOWING BLOCK TO PROPERLY SET THE POPULATION TO BE INCLUDED
 graduates_with_transfers <- # establish appropriate population
   graduates_with_transfers  #%>% #insert one of the following lines if filtering 
@@ -243,7 +247,7 @@ cat("(Diagonal = within-group flow; off-diagonal = cross-group flow)\n")
 
 
 # VISUALIZE TRANSFER FLOWS -----------------------------------
-tree_plot_visualization = TRUE
+tree_plot_visualization = FALSE
 if (tree_plot_visualization == TRUE){
 
   tree_edges_graph <- 
@@ -327,6 +331,15 @@ graduates_with_transfers_short <- # convert full major names to abbreviations
   mutate(major_second = program_abbreviation) %>% 
   select(major_first, major_second, transfer_dec_sem, first_sem_gpa, final_coe_gpa)
 
+graduates_no_transfers_short <- # convert to abbreviations
+  graduates_no_transfers %>% 
+  left_join(.,program_list, by = c('major_first' = 'program_name'), keep = FALSE) %>% 
+  mutate(major_first = program_abbreviation) %>% 
+  select(!program_abbreviation) %>% 
+  mutate(major_second = major_first) %>% 
+  mutate(transfer_dec_sem = 0) %>% # put 0 as a placeholder
+  select(major_first, major_second, transfer_dec_sem, first_sem_gpa, final_coe_gpa)
+
 transfer_time_summary <- # get summary of median semester of transfer decision
   graduates_with_transfers_short %>% 
   group_by(major_first, major_second) %>% 
@@ -340,9 +353,19 @@ transfer_time_matrix <- # put in matrix form
   arrange(major_first) %>% 
   select(major_first, sort(setdiff(names(.), "major_first")))
   
-transfer_gpa_summary <- 
-  graduates_with_transfers_short %>% 
-  group_by(major_first, major_second) %>% 
-  summarize(totals = n(), start_gpa = mean(first_sem_gpa), end_gpa = mean(final_coe_gpa))
+all_graduates <- # bind together all students for summary
+  bind_rows(graduates_with_transfers_short, graduates_no_transfers_short)
 
+transfer_gpa_summary <- 
+  all_graduates %>% 
+  group_by(major_first, major_second) %>% 
+  summarize(totals = n(), mean_start_gpa = mean(first_sem_gpa, na.rm = TRUE ), mean_end_gpa = mean(final_coe_gpa, na.rm = TRUE))
+
+transfer_gpa_matrix <- 
+  transfer_gpa_summary %>% 
+  select(!c(totals,mean_start_gpa)) %>% 
+  pivot_wider(names_from = major_second, values_from = mean_end_gpa) %>% 
+  arrange(major_first) %>% 
+  select(major_first, sort(setdiff(names(.), "major_first")))
+  
 
