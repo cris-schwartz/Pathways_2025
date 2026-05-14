@@ -31,6 +31,9 @@ transfer_timing <- # import the previously prepared transfer decision timing fil
   as_tibble() %>% 
   select(c(study_id,transfer_dec_sem)) # select only the key column and the transfer decision timing
 
+major_grouping <- # import the proposed major grouping plan
+  read_csv("./Data/major_grouping.csv") %>% 
+  as_tibble()
 
 # CALCULATE TRANSFERS IN AND OUT BY EACH MAJOR --------------
 graduates_with_transfers <- # select only students who earned CoE degree and changed CoE major
@@ -57,6 +60,14 @@ transfer_flows <- # determine the numbers of transfers along each major combinat
   group_by(major_first, major_second) %>% 
   summarize(totals = n())
 
+grouped_major_flows <- 
+  transfer_flows %>% 
+  left_join(.,major_grouping, by = c('major_first' = 'major')) %>% 
+  mutate(major_first = group) %>% 
+  select(!group) %>% 
+  left_join(.,major_grouping, by = c('major_second' = 'major')) %>% 
+  mutate(major_second = group) %>% 
+  select(!group & !program_plot_color)
 
 
 program_list <-  tibble(program_name = c("Aerospace Engineering", "Agricultural Engineering", "Biological Systems Engineering",
