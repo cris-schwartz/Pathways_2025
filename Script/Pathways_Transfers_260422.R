@@ -60,14 +60,7 @@ transfer_flows <- # determine the numbers of transfers along each major combinat
   group_by(major_first, major_second) %>% 
   summarize(totals = n())
 
-grouped_major_flows <- 
-  transfer_flows %>% 
-  left_join(.,major_grouping, by = c('major_first' = 'major')) %>% 
-  mutate(major_first = group) %>% 
-  select(!group) %>% 
-  left_join(.,major_grouping, by = c('major_second' = 'major')) %>% 
-  mutate(major_second = group) %>% 
-  select(!group & !program_plot_color)
+
 
 
 program_list <-  tibble(program_name = c("Aerospace Engineering", "Agricultural Engineering", "Biological Systems Engineering",
@@ -97,6 +90,19 @@ transfer_flows <-
   mutate(major_second = program_abbreviation) %>% 
   select(!c(program_abbreviation,program_plot_color.y)) %>% 
   rename(program_plot_color = program_plot_color.x)
+
+grouped_major_flows <- 
+  transfer_flows %>% 
+  left_join(.,major_grouping, by = c('major_first' = 'major')) %>% 
+  mutate(major_first = group) %>% 
+  select(!group) %>% 
+  left_join(.,major_grouping, by = c('major_second' = 'major')) %>% 
+  mutate(major_second = group) %>% 
+  select(!group & !program_plot_color) %>% 
+  group_by(major_first, major_second) %>% 
+  summarize(totals = n())
+
+
   
 # K-CUT ANALYSIS --------------
 # Most of this section was generated using Claude Sonnet 4.6
@@ -329,6 +335,63 @@ if (tree_plot_visualization == TRUE){
     mutate(across(everything(), \(x) replace_na(x, 0)))
 
            
+}
+
+grouped_major_visualization = TRUE
+if (grouped_major_visualization == TRUE){
+  
+  grouped_edges_graph <- 
+    grouped_major_flows %>% 
+    rename(from = major_first, to = major_second)
+
+
+  grouped_node_attrs <-
+    tibble(
+      name = unique(c(grouped_edges_graph$from, grouped_edges_graph$to)))
+
+
+  grouped_graph_transfers <- 
+    tbl_graph(
+      nodes = grouped_node_attrs,
+      edges = grouped_edges_graph,
+      directed = TRUE)
+  
+  node_tibble <- grouped_graph_transfers %>% activate(nodes) %>% as_tibble() # to assist in plot diagnosis
+  edge_tibble <- grouped_graph_transfers %>% activate(edges) %>% as_tibble()
+  
+  plot_grouped_graph_transfers <-
+    grouped_graph_transfers %>%
+    ggraph(layout = "linear", circular = TRUE) +
+    geom_edge_diagonal2(aes(edge_width = totals,
+                      color = factor(from)
+                      ,alpha = after_stat(index))
+                       # arrow = arrow(length = unit(5, "mm"), type = "open"),
+                       # end_cap = circle(3, 'mm')
+                       ) +
+    scale_edge_alpha(range = c(0.1, 0.9), guide = 'none') +
+    # scale_edge_colour_identity(guide = 'none') +
+    # geom_edge_link(arrow = arrow(length = unit(4, 'mm')),
+    #                 end_cap = circle(3, 'mm')) +
+    geom_node_label(aes(label = factor(name)),
+                    alpha = 0.8) +
+    scale_fill_identity() +
+    theme_graph(base_family = "") +
+    theme(plot.title = element_text(size = 16)) +
+    scale_edge_width(guide = "none") +
+    labs(title = "CoE Transfers Between Major Groups 2015 - 2024")
+    # labs(title = "CoE Program Transfers after starting in Undeclared 2015 - 2024")
+    # labs(title = "CoE Program Transfers for students starting as decalred 2015 - 2024")
+  
+
+  
+  
+  print(plot_grouped_graph_transfers)  
+  
+  grouped_major_transfer_matrix <- 
+    grouped_major_flows %>% 
+    pivot_wider(names_from = major_second, values_from = totals)
+
+
 }
 
 # ANALYZE TRANSFER DECISION TIMING---------------------
