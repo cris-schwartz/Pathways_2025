@@ -53,7 +53,10 @@ graduates_with_transfers <- # establish appropriate population
   graduates_with_transfers  #%>% #insert one of the following lines if filtering 
   # filter(undeclared_start == 1) # look at only undeclared starts
   # filter(undeclared_start == 0) # look at only declared starts
-  
+
+# filter_check <- 
+#   graduates_with_transfers %>% 
+#   filter(major_first == 'Aerospace Engineering' & major_second == 'Mechanical Engineering')
 
 transfer_flows <- # determine the numbers of transfers along each major combination
   graduates_with_transfers %>% 
@@ -93,14 +96,19 @@ transfer_flows <-
 
 grouped_major_flows <- 
   transfer_flows %>% 
-  left_join(.,major_grouping, by = c('major_first' = 'major')) %>% 
-  mutate(major_first = group) %>% 
+  left_join(.,major_grouping, by = c('major_first' = 'major'))  %>% 
+  mutate(group_first = group) %>% 
   select(!group) %>% 
   left_join(.,major_grouping, by = c('major_second' = 'major')) %>% 
-  mutate(major_second = group) %>% 
+  mutate(group_second = group) %>% 
   select(!group & !program_plot_color) %>% 
-  group_by(major_first, major_second) %>% 
-  summarize(totals = n())
+  group_by(group_first, group_second) %>% 
+  summarize(total = sum(totals))
+
+# group_test <- 
+#   grouped_major_flows %>% 
+#   group_by(group_first, group_second) %>% 
+#   summarize(totals = sum(totals))
 
 
   
@@ -264,7 +272,7 @@ cat("(Diagonal = within-group flow; off-diagonal = cross-group flow)\n")
 
 
 # VISUALIZE TRANSFER FLOWS -----------------------------------
-tree_plot_visualization = FALSE
+tree_plot_visualization = TRUE
 if (tree_plot_visualization == TRUE){
 
   tree_edges_graph <- 
@@ -334,6 +342,14 @@ if (tree_plot_visualization == TRUE){
     select(!program_plot_color) %>% 
     mutate(across(everything(), \(x) replace_na(x, 0)))
 
+  ungrouped_major_total_transfers <- 
+    transfer_matrix %>%
+    ungroup() %>% 
+    slice(-1) %>%
+    select(-1) %>% 
+    mutate(across(everything(),as.numeric)) %>% 
+    as.matrix() %>%
+    {sum(.) - sum(diag(.))}
            
 }
 
@@ -342,7 +358,7 @@ if (grouped_major_visualization == TRUE){
   
   grouped_edges_graph <- 
     grouped_major_flows %>% 
-    rename(from = major_first, to = major_second)
+    rename(from = group_first, to = group_second)
 
 
   grouped_node_attrs <-
@@ -362,7 +378,7 @@ if (grouped_major_visualization == TRUE){
   plot_grouped_graph_transfers <-
     grouped_graph_transfers %>%
     ggraph(layout = "linear", circular = TRUE) +
-    geom_edge_diagonal2(aes(edge_width = totals,
+    geom_edge_diagonal2(aes(edge_width = total,
                       color = factor(from)
                       ,alpha = after_stat(index))
                        # arrow = arrow(length = unit(5, "mm"), type = "open"),
@@ -389,7 +405,17 @@ if (grouped_major_visualization == TRUE){
   
   grouped_major_transfer_matrix <- 
     grouped_major_flows %>% 
-    pivot_wider(names_from = major_second, values_from = totals)
+    pivot_wider(names_from = group_second, values_from = total)
+  
+  grouped_major_total_transfers <- 
+    grouped_major_transfer_matrix %>%
+    ungroup() %>% 
+    slice(-1) %>%
+    select(-1) %>% 
+    mutate(across(everything(),as.numeric)) %>% 
+    as.matrix() %>%
+    {sum(.) - sum(diag(.))}
+     
 
 
 }
